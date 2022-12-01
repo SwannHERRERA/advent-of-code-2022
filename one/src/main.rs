@@ -9,12 +9,19 @@ fn main() -> std::io::Result<()> {
     let _read_to_stirng_result = buffer.read_to_string(&mut content)?;
     let elve_inventories: Vec<&str> = content.split("\n\n").collect();
 
-    let sums: Vec<u32> = elve_inventories.into_iter().map(|inventory| {
+    let mut sums: Vec<u32> = elve_inventories.into_iter().map(|inventory| {
         inventory.lines().map(|s| s.parse::<u32>().expect("line is number")).sum()
     }).collect();
-    let max = sums.into_iter().max_by(|a, b| a.cmp(b));
+    sums.sort_by(|a, b| b.cmp(a));
 
-    println!("{}", max.unwrap());
+
+    let mut max_of_three = 0;
+    for i in 0..3 {
+        max_of_three += sums[i];
+    }
+    let max = sums[0];
+
+    println!("{}, max: {}", max_of_three, max);
 
     Ok(())
 }

@@ -1,14 +1,12 @@
 use std::fs;
 
-mod constant;
 mod types;
 mod utils;
 
-use constant::*;
-use types::{OutcomeOfRound, Shape, Strategy};
+use types::{Play, Strategy, Outcome::{*, self}};
 
-use utils::{convert_letter_to_shape, convert_letter_to_shape_second_strategy};
-use Shape::*;
+use utils::{convert_letters_to_moves, convert_letters_to_move_for_outcome};
+use Play::*;
 
 use crate::utils::parse_input;
 
@@ -32,9 +30,13 @@ fn star2() {
 }
 
 fn compute_total_score(strategy: Strategy) -> u32 {
-    let games = convert_letter_to_shape(strategy);
+    let games = convert_letters_to_moves(strategy);
 
-    let win_lose_score: u32 = games.iter().map(play_round).sum();
+    let win_lose_score: u32 = games
+        .iter()
+        .map(play_round)
+        .map(|res| res as u32)
+        .sum();
     let shape_usage_score: u32 = games
         .iter()
         .map(|(_, player_shape)| *player_shape as u32)
@@ -43,11 +45,11 @@ fn compute_total_score(strategy: Strategy) -> u32 {
 }
 
 fn compute_second_strategy(strategy: Strategy) -> u32 {
-    let games = convert_letter_to_shape_second_strategy(strategy);
+    let games = convert_letters_to_move_for_outcome(strategy);
 
     let win_lose_score: u32 = games
         .iter()
-        .map(|(_, game_resolution)| game_resolution)
+        .map(|(_, game_resolution)| *game_resolution as u32)
         .sum();
     let shape_usage_score: u32 = games
         .iter()
@@ -57,28 +59,27 @@ fn compute_second_strategy(strategy: Strategy) -> u32 {
     win_lose_score + shape_usage_score
 }
 
-fn play_round((opponent_shape, player_shape): &(Shape, Shape)) -> OutcomeOfRound {
+fn play_round((opponent_shape, player_shape): &(Play, Play)) -> Outcome {
     match (player_shape, opponent_shape) {
-        (Rock, Scissors) | (Paper, Rock) | (Scissors, Paper) => WIN,
-        (Rock, Rock) | (Paper, Paper) | (Scissors, Scissors) => DRAW,
-        (_, _) => LOOSE,
+        (Rock, Scissors) | (Paper, Rock) | (Scissors, Paper) => Win,
+        (Rock, Rock) | (Paper, Paper) | (Scissors, Scissors) => Draw,
+        (Rock, Paper) | (Paper, Scissors) | (Scissors, Rock) => Loose,
     }
 }
 
-fn find_best_move((opponent_shape, result_expected): &(Shape, u32)) -> Shape {
+fn find_best_move((opponent_shape, result_expected): &(Play, Outcome)) -> Play {
     match (opponent_shape, *result_expected) {
-        (Rock, DRAW) | (Paper, LOOSE) | (Scissors, WIN) => Rock,
-        (Rock, WIN) | (Paper, DRAW) | (Scissors, LOOSE) => Paper,
-        (Rock, LOOSE) | (Paper, WIN) | (Scissors, DRAW) => Scissors,
-        (_, _) => unreachable!(),
+        (Rock, Draw) | (Paper, Loose) | (Scissors, Win) => Rock,
+        (Rock, Win) | (Paper, Draw) | (Scissors, Loose) => Paper,
+        (Rock, Loose) | (Paper, Win) | (Scissors, Draw) => Scissors,
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::OpponentShape::*;
-    use crate::types::PlayerShape::*;
+    use crate::types::OpponentLetter::*;
+    use crate::types::PlayerLetter::*;
 
     #[test]
     fn compute_total_score_test() {

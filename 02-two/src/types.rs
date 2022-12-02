@@ -1,26 +1,31 @@
-pub type OutcomeOfRound = u32;
-
 #[derive(Debug, PartialEq, Eq)]
-pub enum Shape {
+pub enum Play {
     Rock = 1,
     Paper = 2,
     Scissors = 3,
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum PlayerShape {
+pub enum PlayerLetter {
     X,
     Y,
     Z,
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum OpponentShape {
+pub enum OpponentLetter {
     A,
     B,
     C,
 }
 
-pub type Strategy = Vec<(OpponentShape, PlayerShape)>;
-pub type Games = Vec<(Shape, Shape)>;
-pub type SecondStrategy = Vec<(Shape, OutcomeOfRound)>;
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+pub enum Outcome {
+    Win = 6,
+    Draw = 3,
+    Loose = 0,
+}
+
+pub type Strategy = Vec<(OpponentLetter, PlayerLetter)>;
+pub type Moves = Vec<(Play, Play)>;
+pub type MoveForOutcome = Vec<(Play, Outcome)>;

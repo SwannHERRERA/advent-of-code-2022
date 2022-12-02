@@ -1,8 +1,10 @@
-use crate::constant::*;
-use crate::types::OpponentShape::*;
-use crate::types::PlayerShape::*;
-use crate::types::Shape::*;
-use crate::types::{Games, SecondStrategy, Strategy};
+use crate::types::OpponentLetter;
+use crate::types::OpponentLetter::*;
+use crate::types::Play;
+use crate::types::PlayerLetter::*;
+use crate::types::Play::*;
+use crate::types::Outcome::*;
+use crate::types::{Moves, MoveForOutcome, Strategy};
 
 pub fn parse_input(input: &str) -> Strategy {
     input
@@ -29,15 +31,11 @@ pub fn parse_input(input: &str) -> Strategy {
         .collect()
 }
 
-pub fn convert_letter_to_shape(strategy: Strategy) -> Games {
+pub fn convert_letters_to_moves(strategy: Strategy) -> Moves {
     strategy
         .into_iter()
         .map(|(opponent_play, player_play)| {
-            let opponent_shape = match opponent_play {
-                A => Rock,
-                B => Paper,
-                C => Scissors,
-            };
+            let opponent_shape = convert_opponent_letter(opponent_play);
             let player_shape = match player_play {
                 X => Rock,
                 Y => Paper,
@@ -48,23 +46,27 @@ pub fn convert_letter_to_shape(strategy: Strategy) -> Games {
         .collect()
 }
 
-pub fn convert_letter_to_shape_second_strategy(strategy: Strategy) -> SecondStrategy {
+pub fn convert_letters_to_move_for_outcome(strategy: Strategy) -> MoveForOutcome {
     strategy
         .into_iter()
         .map(|(opponent_play, outcome_code)| {
-            let opponent_shape = match opponent_play {
-                A => Rock,
-                B => Paper,
-                C => Scissors,
-            };
+            let opponent_shape = convert_opponent_letter(opponent_play);
             let outcome = match outcome_code {
-                X => LOOSE,
-                Y => DRAW,
-                Z => WIN,
+                X => Loose,
+                Y => Draw,
+                Z => Win,
             };
             (opponent_shape, outcome)
         })
         .collect()
+}
+
+fn convert_opponent_letter(letter: OpponentLetter) -> Play {
+    match letter {
+        A => Rock,
+        B => Paper,
+        C => Scissors,
+    }
 }
 
 #[cfg(test)]
@@ -87,15 +89,15 @@ C Z";
     fn convert_letter_to_shape_test() {
         let strategy = vec![(A, Y), (B, X), (C, Z)];
         let expected_result = vec![(Rock, Paper), (Paper, Rock), (Scissors, Scissors)];
-        let result = convert_letter_to_shape(strategy);
+        let result = convert_letters_to_moves(strategy);
         assert!(vec_eq(result, expected_result));
     }
 
     #[test]
     fn test_convert_letter_to_shape_second_strategy() {
         let strategy = vec![(A, Y), (B, X), (C, Z)];
-        let expected_result = vec![(Rock, DRAW), (Paper, LOOSE), (Scissors, WIN)];
-        let result = convert_letter_to_shape_second_strategy(strategy);
+        let expected_result = vec![(Rock, Draw), (Paper, Loose), (Scissors, Win)];
+        let result = convert_letters_to_move_for_outcome(strategy);
         assert!(vec_eq(result, expected_result));
     }
 }

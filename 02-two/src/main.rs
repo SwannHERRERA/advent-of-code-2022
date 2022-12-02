@@ -80,6 +80,9 @@ mod tests {
     use super::*;
     use crate::types::OpponentLetter::*;
     use crate::types::PlayerLetter::*;
+    const INPUT: &str = "A Y
+B X
+C Z";
 
     #[test]
     fn compute_total_score_test() {
@@ -93,12 +96,8 @@ mod tests {
     #[test]
     fn resolve_example() {
         const EXPECTED_SCORE: u32 = 15;
-        const INPUT: &str = "A Y
-B X
-C Z";
 
         let strategy = parse_input(INPUT);
-
         let total_score = compute_total_score(strategy);
         assert_eq!(total_score, EXPECTED_SCORE);
     }
@@ -106,9 +105,6 @@ C Z";
     #[test]
     fn use_second_strategy() {
         const EXPECTED_SCORE: u32 = 12;
-        const INPUT: &str = "A Y
-B X
-C Z";
 
         let strategy = parse_input(INPUT);
         let result = compute_second_strategy(strategy);

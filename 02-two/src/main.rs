@@ -1,14 +1,14 @@
 use std::fs;
 
-mod types;
 mod constant;
+mod types;
 mod utils;
 
 use constant::*;
-use types::{Shape, Strategy, OutcomeOfRound};
+use types::{OutcomeOfRound, Shape, Strategy};
 
-use Shape::*;
 use utils::{convert_letter_to_shape, convert_letter_to_shape_second_strategy};
+use Shape::*;
 
 use crate::utils::parse_input;
 
@@ -18,14 +18,14 @@ fn main() {
 }
 
 fn star1() {
-    let input = fs::read_to_string("data.txt").unwrap();
+    let input = fs::read_to_string("02-two/data.txt").unwrap();
     let strategy = parse_input(input.as_str());
     let result = compute_total_score(strategy);
     println!("{result}");
 }
 
 fn star2() {
-    let input = fs::read_to_string("data.txt").unwrap();
+    let input = fs::read_to_string("02-two/data.txt").unwrap();
     let strategy = parse_input(input.as_str());
     let result = compute_second_strategy(strategy);
     println!("{result}");
@@ -33,41 +33,46 @@ fn star2() {
 
 fn compute_total_score(strategy: Strategy) -> u32 {
     let games = convert_letter_to_shape(strategy);
-    
-    let win_lose_score: u32 = games.iter().map(|game| play_round(game)).sum();
-    let shape_usage_score: u32 = games.iter().map(|(_, player_shape)| *player_shape as u32).sum(); 
+
+    let win_lose_score: u32 = games.iter().map(play_round).sum();
+    let shape_usage_score: u32 = games
+        .iter()
+        .map(|(_, player_shape)| *player_shape as u32)
+        .sum();
     win_lose_score + shape_usage_score
 }
 
 fn compute_second_strategy(strategy: Strategy) -> u32 {
     let games = convert_letter_to_shape_second_strategy(strategy);
 
-    let win_lose_score: u32 = games.iter().map(|(_, game_resolution)| game_resolution).sum(); 
-    let shape_usage_score: u32 = games.iter()
-        .map(|game| find_best_move(game))
+    let win_lose_score: u32 = games
+        .iter()
+        .map(|(_, game_resolution)| game_resolution)
+        .sum();
+    let shape_usage_score: u32 = games
+        .iter()
+        .map(find_best_move)
         .map(|shape_played| shape_played as u32)
         .sum();
-    win_lose_score + shape_usage_score 
+    win_lose_score + shape_usage_score
 }
 
 fn play_round((opponent_shape, player_shape): &(Shape, Shape)) -> OutcomeOfRound {
     match (player_shape, opponent_shape) {
         (ROCK, SCISSORS) | (PAPER, ROCK) | (SCISSORS, PAPER) => WIN,
         (ROCK, ROCK) | (PAPER, PAPER) | (SCISSORS, SCISSORS) => DRAW,
-        (_, _) => LOST,
+        (_, _) => LOOSE,
     }
 }
 
-
 fn find_best_move((opponent_shape, result_expected): &(Shape, u32)) -> Shape {
-   match (opponent_shape, *result_expected) {
-        (ROCK, DRAW) | (PAPER, LOST) | (SCISSORS, WIN) => ROCK,
-        (ROCK, WIN) | (PAPER, DRAW) | (SCISSORS, LOST) => PAPER,
-        (ROCK, LOST) | (PAPER, WIN) | (SCISSORS, DRAW) => SCISSORS,
+    match (opponent_shape, *result_expected) {
+        (ROCK, DRAW) | (PAPER, LOOSE) | (SCISSORS, WIN) => ROCK,
+        (ROCK, WIN) | (PAPER, DRAW) | (SCISSORS, LOOSE) => PAPER,
+        (ROCK, LOOSE) | (PAPER, WIN) | (SCISSORS, DRAW) => SCISSORS,
         (_, _) => unreachable!(),
-    } 
+    }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -79,11 +84,7 @@ mod tests {
     fn compute_total_score_test() {
         const EXPECTED_SCORE: u32 = 15;
 
-        let strategy: Strategy = vec![
-            (A, Y),
-            (B, X),
-            (C, Z),
-        ];
+        let strategy: Strategy = vec![(A, Y), (B, X), (C, Z)];
         let score = compute_total_score(strategy);
         assert_eq!(score, EXPECTED_SCORE);
     }

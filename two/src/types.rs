@@ -25,3 +25,4 @@ pub enum OpponentShape {
 
 pub type Strategy = Vec<(OpponentShape, PlayerShape)>;
 pub type Games = Vec<(Shape, Shape)>;
+pub type SecondStrategy = Vec<(Shape, OutcomeOfRound)>;

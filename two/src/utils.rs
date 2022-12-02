@@ -1,4 +1,5 @@
-use crate::types::{Strategy, Games};
+use crate::constant::*;
+use crate::types::{Strategy, Games, SecondStrategy};
 use crate::types::Shape::*;
 use crate::types::PlayerShape::*;
 use crate::types::OpponentShape::*;
@@ -29,18 +30,34 @@ pub fn parse_input(input: &str) -> Strategy {
 }
 
 pub fn convert_letter_to_shape(strategy: Strategy) -> Games {
-    strategy.into_iter().map(|(x, y)| {
-        let opponent_shape = match x {
+    strategy.into_iter().map(|(opponent_play, player_play)| {
+        let opponent_shape = match opponent_play {
             A => ROCK,
             B => PAPER,
             C => SCISSORS,
         };
-        let player_shape = match y {
+        let player_shape = match player_play {
             X => ROCK,
             Y => PAPER,
             Z => SCISSORS,
         };
         return (opponent_shape, player_shape);
+    }).collect()
+}
+
+pub fn convert_letter_to_shape_second_strategy(strategy: Strategy) -> SecondStrategy {
+    strategy.into_iter().map(|(opponent_play, outcome_code)| {
+        let opponent_shape = match opponent_play {
+            A => ROCK,
+            B => PAPER,
+            C => SCISSORS,
+        };
+        let outcome = match outcome_code {
+            X => LOST,
+            Y => DRAW,
+            Z => WIN,
+        };
+        return (opponent_shape, outcome);
     }).collect()
 }
 
@@ -80,5 +97,21 @@ C Z";
         assert!(vec_eq(result, expected_result));
     }
 
+    #[test]
+    fn test_convert_letter_to_shape_second_strategy() {
+        let strategy = vec![
+            (A, Y),
+            (B, X),
+            (C, Z),
+        ];
+        let expected_result = vec![
+            (ROCK, DRAW),
+            (PAPER, LOST),
+            (SCISSORS, WIN),
+        ];
+        let result = convert_letter_to_shape_second_strategy(strategy);
+        assert!(vec_eq(result, expected_result));
+        
+    }
 }
 

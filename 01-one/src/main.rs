@@ -7,9 +7,8 @@ fn main() -> std::io::Result<()> {
     let mut buffer = BufReader::new(file);
     let mut content = String::new();
     let _read_to_stirng_result = buffer.read_to_string(&mut content)?;
-    let elve_inventories: Vec<&str> = content.split("\n\n").collect();
-
-    let mut sums: Vec<u32> = elve_inventories
+    let mut sums: Vec<u32> = content
+        .split("\n\n")
         .into_iter()
         .map(|inventory| {
             inventory

@@ -2,9 +2,9 @@ pub type OutcomeOfRound = u32;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Shape {
-    ROCK = 1,
-    PAPER = 2,
-    SCISSORS = 3,
+    Rock = 1,
+    Paper = 2,
+    Scissors = 3,
 }
 
 #[derive(Debug, PartialEq, Eq)]

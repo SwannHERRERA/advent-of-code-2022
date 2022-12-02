@@ -59,17 +59,17 @@ fn compute_second_strategy(strategy: Strategy) -> u32 {
 
 fn play_round((opponent_shape, player_shape): &(Shape, Shape)) -> OutcomeOfRound {
     match (player_shape, opponent_shape) {
-        (ROCK, SCISSORS) | (PAPER, ROCK) | (SCISSORS, PAPER) => WIN,
-        (ROCK, ROCK) | (PAPER, PAPER) | (SCISSORS, SCISSORS) => DRAW,
+        (Rock, Scissors) | (Paper, Rock) | (Scissors, Paper) => WIN,
+        (Rock, Rock) | (Paper, Paper) | (Scissors, Scissors) => DRAW,
         (_, _) => LOOSE,
     }
 }
 
 fn find_best_move((opponent_shape, result_expected): &(Shape, u32)) -> Shape {
     match (opponent_shape, *result_expected) {
-        (ROCK, DRAW) | (PAPER, LOOSE) | (SCISSORS, WIN) => ROCK,
-        (ROCK, WIN) | (PAPER, DRAW) | (SCISSORS, LOOSE) => PAPER,
-        (ROCK, LOOSE) | (PAPER, WIN) | (SCISSORS, DRAW) => SCISSORS,
+        (Rock, DRAW) | (Paper, LOOSE) | (Scissors, WIN) => Rock,
+        (Rock, WIN) | (Paper, DRAW) | (Scissors, LOOSE) => Paper,
+        (Rock, LOOSE) | (Paper, WIN) | (Scissors, DRAW) => Scissors,
         (_, _) => unreachable!(),
     }
 }

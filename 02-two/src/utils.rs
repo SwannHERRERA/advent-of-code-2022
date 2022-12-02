@@ -34,14 +34,14 @@ pub fn convert_letter_to_shape(strategy: Strategy) -> Games {
         .into_iter()
         .map(|(opponent_play, player_play)| {
             let opponent_shape = match opponent_play {
-                A => ROCK,
-                B => PAPER,
-                C => SCISSORS,
+                A => Rock,
+                B => Paper,
+                C => Scissors,
             };
             let player_shape = match player_play {
-                X => ROCK,
-                Y => PAPER,
-                Z => SCISSORS,
+                X => Rock,
+                Y => Paper,
+                Z => Scissors,
             };
             (opponent_shape, player_shape)
         })
@@ -53,9 +53,9 @@ pub fn convert_letter_to_shape_second_strategy(strategy: Strategy) -> SecondStra
         .into_iter()
         .map(|(opponent_play, outcome_code)| {
             let opponent_shape = match opponent_play {
-                A => ROCK,
-                B => PAPER,
-                C => SCISSORS,
+                A => Rock,
+                B => Paper,
+                C => Scissors,
             };
             let outcome = match outcome_code {
                 X => LOOSE,
@@ -86,7 +86,7 @@ C Z";
     #[test]
     fn convert_letter_to_shape_test() {
         let strategy = vec![(A, Y), (B, X), (C, Z)];
-        let expected_result = vec![(ROCK, PAPER), (PAPER, ROCK), (SCISSORS, SCISSORS)];
+        let expected_result = vec![(Rock, Paper), (Paper, Rock), (Scissors, Scissors)];
         let result = convert_letter_to_shape(strategy);
         assert!(vec_eq(result, expected_result));
     }
@@ -94,7 +94,7 @@ C Z";
     #[test]
     fn test_convert_letter_to_shape_second_strategy() {
         let strategy = vec![(A, Y), (B, X), (C, Z)];
-        let expected_result = vec![(ROCK, DRAW), (PAPER, LOOSE), (SCISSORS, WIN)];
+        let expected_result = vec![(Rock, DRAW), (Paper, LOOSE), (Scissors, WIN)];
         let result = convert_letter_to_shape_second_strategy(strategy);
         assert!(vec_eq(result, expected_result));
     }

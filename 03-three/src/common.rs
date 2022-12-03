@@ -27,7 +27,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_hashset_of_part1() {
+    fn test_get_hashset_of_str() {
         const PART_1: &str = "vPwwTWBwg";
         let set = get_hashset_of_str(PART_1);
         assert!(set.contains(&'v'));

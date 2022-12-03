@@ -8,8 +8,8 @@ fn main() {
 }
 
 fn part1(input: &str) {
-    let common_letters = find_common_letter(input);
-    let letters_value = sums_letter_values(common_letters);
+    let common_letters = find_common_items(input);
+    let letters_value = sums_items_priority(common_letters);
     println!("{}", letters_value);
 }
 
@@ -42,15 +42,15 @@ fn compute_summurize_of_priority(elves: (Vec<String>, Vec<String>, Vec<String>))
         .sum()
 }
 
-fn find_common_letter(input: &str) -> Vec<char> {
-    let mut common_letters: Vec<char> = Vec::with_capacity(input.lines().count());
+fn find_common_items(input: &str) -> Vec<char> {
+    let mut common_items: Vec<char> = Vec::with_capacity(input.lines().count());
     for line in input.lines() {
         let (part1, part2) = split_at_center(line);
         let set = get_hashset_of_str(part1);
-        let common_letter: char = part2.chars().filter(|c| set.contains(c)).last().unwrap();
-        common_letters.push(common_letter);
+        let common_item: char = part2.chars().filter(|c| set.contains(c)).last().unwrap();
+        common_items.push(common_item);
     }
-    common_letters
+    common_items
 }
 
 fn find_priority_of_the_common_item(elve_1: &str, elve_2: &str, elve_3: &str) -> u32 {
@@ -68,15 +68,15 @@ fn split_at_center(line: &str) -> (&str, &str) {
     line.split_at(line.len() / 2)
 }
 
-fn get_hashset_of_str(part1: &str) -> HashSet<char> {
+fn get_hashset_of_str(subject: &str) -> HashSet<char> {
     let mut set: HashSet<char> = HashSet::new();
-    for letter in part1.chars() {
-        set.insert(letter);
+    for item in subject.chars() {
+        set.insert(item);
     }
     set
 }
 
-fn sums_letter_values(letters: Vec<char>) -> u32 {
+fn sums_items_priority(letters: Vec<char>) -> u32 {
     letters.iter().map(calculate_letter_priority).sum()
 }
 
@@ -109,17 +109,17 @@ CrZsJsPPZsGzwwsLwLmpwMDw";
     #[test]
     fn test_part1() {
         const EXPECTED_OUTPUT: u32 = 157;
-        let letters = find_common_letter(INPUT);
-        let sum_of_letter_value = sums_letter_values(letters);
-        assert_eq!(EXPECTED_OUTPUT, sum_of_letter_value);
+        let items = find_common_items(INPUT);
+        let sum_of_items_value = sums_items_priority(items);
+        assert_eq!(EXPECTED_OUTPUT, sum_of_items_value);
     }
 
     #[test]
     fn test_find_common_letter() {
         let expected = vec!['p', 'L', 'P', 'v', 't', 's'];
-        let letters = find_common_letter(INPUT);
-        println!("{:?} {:?}", letters, expected);
-        assert!(vec_eq(letters, expected));
+        let items = find_common_items(INPUT);
+        println!("{:?} {:?}", items, expected);
+        assert!(vec_eq(items, expected));
     }
 
     #[test]
@@ -133,16 +133,16 @@ CrZsJsPPZsGzwwsLwLmpwMDw";
     #[test]
     fn test_get_hashset_of_part1() {
         const PART_1: &str = "vPwwTWBwg";
-        let hashset = get_hashset_of_str(PART_1);
-        assert!(hashset.contains(&'v'));
-        assert!(hashset.contains(&'P'));
-        assert!(hashset.contains(&'w'));
-        assert!(hashset.contains(&'T'));
-        assert!(hashset.contains(&'W'));
-        assert!(hashset.contains(&'B'));
-        assert!(hashset.contains(&'g'));
-        assert_eq!(hashset.contains(&'y'), false);
-        assert_eq!(hashset.len(), 7);
+        let set = get_hashset_of_str(PART_1);
+        assert!(set.contains(&'v'));
+        assert!(set.contains(&'P'));
+        assert!(set.contains(&'w'));
+        assert!(set.contains(&'T'));
+        assert!(set.contains(&'W'));
+        assert!(set.contains(&'B'));
+        assert!(set.contains(&'g'));
+        assert_eq!(set.contains(&'y'), false);
+        assert_eq!(set.len(), 7);
     }
 
     #[test]

@@ -11,7 +11,7 @@ pub fn split_by_group_of_elves(input: &str) -> (Vec<String>, Vec<String>, Vec<St
     (elves_1, elves_2, elves_3)
 }
 
-pub fn compute_summurize_of_priority(elves: (Vec<String>, Vec<String>, Vec<String>)) -> u32 {
+pub fn compute_summarize_of_priority(elves: (Vec<String>, Vec<String>, Vec<String>)) -> u32 {
     let mut threads = Vec::with_capacity(elves.0.len());
 
     for (elve_1, elve_2, elve_3) in multizip((elves.0, elves.1, elves.2)) {

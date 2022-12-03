@@ -2,7 +2,7 @@ use std::fs;
 
 use crate::{
     part1::{find_common_items, sums_items_priority},
-    part2::{compute_summurize_of_priority, split_by_group_of_elves},
+    part2::{compute_summarize_of_priority, split_by_group_of_elves},
 };
 
 mod common;
@@ -10,7 +10,7 @@ mod part1;
 mod part2;
 
 fn main() {
-    let input = fs::read_to_string("03-three/data.txt").unwrap();
+    let input = fs::read_to_string("03-three/message.txt").unwrap();
     part1(&input);
     part2(&input);
 }
@@ -23,7 +23,7 @@ fn part1(input: &str) {
 
 fn part2(input: &str) {
     let elves = split_by_group_of_elves(input);
-    let sum = compute_summurize_of_priority(elves);
+    let sum = compute_summarize_of_priority(elves);
     println!("{sum}");
 }
 
@@ -51,7 +51,7 @@ CrZsJsPPZsGzwwsLwLmpwMDw";
         const EXPECTED_RESULT: u32 = 70;
 
         let elves = split_by_group_of_elves(INPUT);
-        let sum = compute_summurize_of_priority(elves);
+        let sum = compute_summarize_of_priority(elves);
         assert_eq!(EXPECTED_RESULT, sum);
     }
 }

@@ -3,9 +3,12 @@ use std::fs;
 mod types;
 mod utils;
 
-use types::{Play, Strategy, Outcome::{*, self}};
+use types::{
+    Outcome::{self, *},
+    Play, Strategy,
+};
 
-use utils::{convert_letters_to_moves, convert_letters_to_move_for_outcome};
+use utils::{convert_letters_to_move_for_outcome, convert_letters_to_moves};
 use Play::*;
 
 use crate::utils::parse_input;
@@ -32,11 +35,7 @@ fn star2() {
 fn compute_total_score(strategy: Strategy) -> u32 {
     let games = convert_letters_to_moves(strategy);
 
-    let win_lose_score: u32 = games
-        .iter()
-        .map(play_round)
-        .map(|res| res as u32)
-        .sum();
+    let win_lose_score: u32 = games.iter().map(play_round).map(|res| res as u32).sum();
     let shape_usage_score: u32 = games
         .iter()
         .map(|(_, player_shape)| *player_shape as u32)

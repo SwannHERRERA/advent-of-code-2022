@@ -1,10 +1,10 @@
 use crate::types::OpponentLetter;
 use crate::types::OpponentLetter::*;
-use crate::types::Play;
-use crate::types::PlayerLetter::*;
-use crate::types::Play::*;
 use crate::types::Outcome::*;
-use crate::types::{Moves, MoveForOutcome, Strategy};
+use crate::types::Play;
+use crate::types::Play::*;
+use crate::types::PlayerLetter::*;
+use crate::types::{MoveForOutcome, Moves, Strategy};
 
 pub fn parse_input(input: &str) -> Strategy {
     input

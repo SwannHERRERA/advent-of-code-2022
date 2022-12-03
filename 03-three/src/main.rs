@@ -141,6 +141,7 @@ CrZsJsPPZsGzwwsLwLmpwMDw";
         assert!(hashset.contains(&'W'));
         assert!(hashset.contains(&'B'));
         assert!(hashset.contains(&'g'));
+        assert_eq!(hashset.contains(&'y'), false);
         assert_eq!(hashset.len(), 7);
     }
 

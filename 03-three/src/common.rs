@@ -22,7 +22,6 @@ pub fn calculate_letter_priority(letter: &char) -> u32 {
     priority
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;

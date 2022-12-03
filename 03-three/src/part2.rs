@@ -1,7 +1,7 @@
-use std::{thread, collections::HashSet};
 use itertools::multizip;
+use std::{collections::HashSet, thread};
 
-use crate::common::{get_hashset_of_str, calculate_letter_priority};
+use crate::common::{calculate_letter_priority, get_hashset_of_str};
 
 pub fn split_by_group_of_elves(input: &str) -> (Vec<String>, Vec<String>, Vec<String>) {
     let elves_1: Vec<String> = input.lines().skip(0).step_by(3).map(String::from).collect();
@@ -11,8 +11,7 @@ pub fn split_by_group_of_elves(input: &str) -> (Vec<String>, Vec<String>, Vec<St
     (elves_1, elves_2, elves_3)
 }
 
-
- pub fn compute_summurize_of_priority(elves: (Vec<String>, Vec<String>, Vec<String>)) -> u32 {
+pub fn compute_summurize_of_priority(elves: (Vec<String>, Vec<String>, Vec<String>)) -> u32 {
     let mut threads = Vec::with_capacity(elves.0.len());
 
     for (elve_1, elve_2, elve_3) in multizip((elves.0, elves.1, elves.2)) {

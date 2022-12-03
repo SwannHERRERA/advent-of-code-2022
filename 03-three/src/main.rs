@@ -1,6 +1,9 @@
 use std::fs;
 
-use crate::{part1::{find_common_items, sums_items_priority}, part2::{split_by_group_of_elves, compute_summurize_of_priority}};
+use crate::{
+    part1::{find_common_items, sums_items_priority},
+    part2::{compute_summurize_of_priority, split_by_group_of_elves},
+};
 
 mod common;
 mod part1;

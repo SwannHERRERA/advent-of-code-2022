@@ -1,6 +1,5 @@
 use crate::common::{calculate_letter_priority, get_hashset_of_str};
 
-
 pub fn find_common_items(input: &str) -> Vec<char> {
     let mut common_items: Vec<char> = Vec::with_capacity(input.lines().count());
     for line in input.lines() {

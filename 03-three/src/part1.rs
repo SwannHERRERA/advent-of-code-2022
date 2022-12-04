@@ -1,4 +1,7 @@
-use std::{thread, sync::{Arc, Mutex}};
+use std::{
+    sync::{Arc, Mutex},
+    thread,
+};
 
 use crate::common::{calculate_letter_priority, get_hashset_of_str};
 
@@ -9,7 +12,7 @@ pub fn find_common_items(input: &str) -> Vec<char> {
     for line in input.lines() {
         let common_items = common_items.clone();
         let line = line.to_owned();
-        threads.push(thread::spawn(move|| {
+        threads.push(thread::spawn(move || {
             let (part1, part2) = split_at_center(line.as_str());
             let set = get_hashset_of_str(part1);
             let common_item: char = part2.chars().filter(|c| set.contains(c)).last().unwrap();

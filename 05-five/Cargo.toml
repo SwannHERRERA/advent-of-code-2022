@@ -1,0 +1,16 @@
+[package]
+name = "five"
+version = "0.0.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+regex = "1.7.0"
+thiserror = "1"
+test_utils = { path = "../test_utils" }
+scan_fmt = "0.2.6"
+
+[dev-dependencies]
+anyhow = "1"
+

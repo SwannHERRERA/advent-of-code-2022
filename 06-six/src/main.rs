@@ -5,6 +5,7 @@ use std::fs;
 
 use crate::prelude::*;
 
+
 fn main() -> Result<()> {
     let input = fs::read_to_string("06-six/input.txt")?;
     let res_one = part_one(&input);
@@ -25,23 +26,27 @@ fn part_two(input: &str) -> usize {
 }
 
 fn find_marker(input: &str, marker_size: usize) -> usize {
-    for i in 0..input.len() {
-        let slice = input[i..(i + marker_size)].to_string();
-        if is_marker(slice) {
+    let len = input.len();
+    let mut i = 0;
+    while i < len {
+        let slice = input[i..(i+marker_size)].to_string();
+        let index_of_jump = find_same_char(slice);
+        if index_of_jump == 0 {
             return i + marker_size;
         }
+        i += index_of_jump as usize;
     }
     0
 }
 
-fn is_marker(slice: String) -> bool {
+fn find_same_char(slice: String) -> i32 {
     let mut copy = slice.clone();
     for (idx, c) in copy.drain(..).enumerate() {
-        if slice[(idx + 1)..].find(c).is_some() {
-            return false;
-        }
+         if let Some(_) =  slice[(idx+1)..].find(c) {
+           return (idx + 1) as i32;
+         }
     }
-    true
+    0
 }
 
 #[cfg(test)]
@@ -59,7 +64,9 @@ mod tests {
             "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw",
         ];
 
-        let exptected_result: Vec<usize> = vec![7, 5, 6, 10, 11];
+        let exptected_result: Vec<usize> = vec![
+            7, 5, 6, 10, 11
+        ];
         let res: Vec<usize> = inputs.iter().map(|input| part_one(input)).collect();
         assert!(vec_eq(exptected_result, res));
     }
@@ -74,10 +81,13 @@ mod tests {
             "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw",
         ];
 
-        let exptected_result: Vec<usize> = vec![19, 23, 23, 29, 26];
+        let exptected_result: Vec<usize> = vec![
+            19, 23, 23, 29, 26
+        ];
 
         let res: Vec<usize> = inputs.iter().map(|input| part_two(input)).collect();
         println!("{:?}", res);
         assert!(vec_eq(exptected_result, res));
     }
+
 }

@@ -115,10 +115,8 @@ fn get_char_to_change(stacks: &mut Stacks, index: usize) -> char {
 }
 
 fn get_chars_to_change(stacks: &mut Stacks, quantity: usize, source: usize) -> Vec<char> {
-        let stack: &mut VecDeque<char> = stacks.get_mut(source).unwrap();
-        (0..quantity)
-            .map(|_| stack.pop_front().unwrap())
-            .collect()
+    let stack: &mut VecDeque<char> = stacks.get_mut(source).unwrap();
+    (0..quantity).map(|_| stack.pop_front().unwrap()).collect()
 }
 
 fn execute_moves_on_vec_for_part2(moves: &Vec<Move>, stacks: &mut Stacks) {

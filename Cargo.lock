@@ -183,6 +183,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "six"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "test_utils",
+ "thiserror",
+]
+
+[[package]]
 name = "syn"
 version = "1.0.105"
 source = "registry+https://github.com/rust-lang/crates.io-index"

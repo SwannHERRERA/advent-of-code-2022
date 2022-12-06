@@ -13,7 +13,7 @@ pub fn part_two(input: &str) -> usize {
 }
 
 #[allow(unused)]
-pub fn start_one(input: &str, marker_size: usize) {
+pub fn ungly_way(input: &str, marker_size: usize) {
     let input: Vec<char> = input
         .chars()
         .collect();

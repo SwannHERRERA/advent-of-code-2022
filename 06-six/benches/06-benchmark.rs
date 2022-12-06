@@ -6,8 +6,8 @@ const INPUT: &str = "llqnqffqsqttfffbcfcbcbdcczccfssvwswrwddzlddpdhdwwlvlffjllnj
 pub fn criterion_benchmark(c: &mut Criterion) {
     let mut group = c.benchmark_group("day-06");
 
-    group.bench_function("hugo", |b| b.iter(|| start_one(black_box(INPUT), 14)));
-    group.bench_function("swann", |b| b.iter(|| part_two(black_box(INPUT))));
+    group.bench_function("ugly", |b| b.iter(|| ungly_way(black_box(INPUT), 14)));
+    group.bench_function("slices", |b| b.iter(|| part_two(black_box(INPUT))));
 
     group.finish();
 }

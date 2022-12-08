@@ -7,5 +7,6 @@ members = [
   "05-five",
   "06-six",
   "07-seven",
+  "08-eight",
   "test_utils",
 ]

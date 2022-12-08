@@ -1,4 +1,4 @@
-use std::{fs, ops::Add};
+use std::fs;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Tree {
@@ -48,32 +48,32 @@ fn calc_viewing_distance(i: usize, j: usize, row: usize, col: usize, forest: &mu
     // scores[1] = ((i+1)..row).take_while(|k| tree.height > forest[*k][j].height).count().add(1);
     // scores[2] = (0..j).rev().take_while(|k| tree.height > forest[*k][j].height).count().add(1);
     // scores[3] = (j..col).take_while(|k| tree.height > forest[*k][j].height).count().add(1);
-    for k in (0..(i)).rev() {
-         if tree.height > forest[k][j].height {
+    for k in (0..i).rev() {
+        if tree.height > forest[k][j].height {
             scores[0] += 1;
         } else {
             scores[0] += 1;
             break;
         }
     }
-    for k in (i+1)..row {
-         if tree.height > forest[k][j].height {
+    for k in (i + 1)..row {
+        if tree.height > forest[k][j].height {
             scores[1] += 1;
         } else {
             scores[1] += 1;
             break;
         }
     }
-    for k in (0..(j)).rev() {
-         if tree.height > forest[i][k].height {
+    for k in (0..j).rev() {
+        if tree.height > forest[i][k].height {
             scores[2] += 1;
         } else {
             scores[2] += 1;
             break;
         }
     }
-    for k in (j+1)..col {
-         if tree.height > forest[i][k].height {
+    for k in (j + 1)..col {
+        if tree.height > forest[i][k].height {
             scores[3] += 1;
         } else {
             scores[3] += 1;
@@ -129,7 +129,11 @@ fn main() {
     let forest = flag_trees(&input);
     let count_visible = count_tree_visible(&forest);
     println!("part one : {}", count_visible);
-    let max_render_distance = forest.iter().flatten().map(|tree| tree.viewving_distance).max();
+    let max_render_distance = forest
+        .iter()
+        .flatten()
+        .map(|tree| tree.viewving_distance)
+        .max();
     println!("part two : {}", max_render_distance.unwrap());
 }
 

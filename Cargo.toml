@@ -1,2 +1,11 @@
 [workspace]
-members = ["01-one", "02-two", "03-three", "04-four", "05-five", "06-six", "test_utils"]
+members = [
+  "01-one",
+  "02-two",
+  "03-three",
+  "04-four",
+  "05-five",
+  "06-six",
+  "07-seven",
+  "test_utils",
+]

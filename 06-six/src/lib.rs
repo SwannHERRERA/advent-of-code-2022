@@ -1,4 +1,4 @@
 mod error;
 mod prelude;
-pub mod utils;
 pub mod resolver;
+pub mod utils;

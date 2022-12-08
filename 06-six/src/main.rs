@@ -4,8 +4,8 @@ mod error;
 mod prelude;
 use crate::prelude::*;
 
-mod utils;
 mod resolver;
+mod utils;
 use resolver::*;
 
 fn main() -> Result<()> {
@@ -16,4 +16,3 @@ fn main() -> Result<()> {
     println!("part two : {res_two}");
     Ok(())
 }
-

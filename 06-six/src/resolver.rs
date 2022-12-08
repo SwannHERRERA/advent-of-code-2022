@@ -14,27 +14,21 @@ pub fn part_two(input: &str) -> usize {
 
 #[allow(unused)]
 pub fn ungly_way(input: &str, marker_size: usize) {
-    let input: Vec<char> = input
-        .chars()
-        .collect();
+    let input: Vec<char> = input.chars().collect();
     let marker_size = marker_size - 1;
     let mut marker: VecDeque<char> = VecDeque::new();
     for i in 0..marker_size {
         marker.push_back(*input.get(i).unwrap());
     }
-    let mut counter = marker_size.clone();
+    let mut counter = marker_size;
     while counter < input.len() {
         let new_char: char = *input.get(counter).unwrap();
         while marker.contains(&new_char) {
             marker.pop_front();
             counter += 1;
         }
-        if marker.len() == marker_size {
-            println!("{}", counter + 1);
-            return;
-        }
         while marker.len() != marker_size {
-            if marker.contains(&input.get(counter - (marker_size - marker.len())).unwrap()) {
+            if marker.contains(input.get(counter - (marker_size - marker.len())).unwrap()) {
                 marker.pop_front();
                 counter += 1
             } else {

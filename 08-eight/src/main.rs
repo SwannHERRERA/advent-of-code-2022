@@ -56,8 +56,9 @@ fn calc_viewing_distance(i: usize, j: usize, row: usize, col: usize, forest: &mu
             break;
         }
     }
-    for k in (i + 1)..row {
-        if tree.height > forest[k][j].height {
+    // Clippy happy with this ???
+    for forest_line in forest.iter().take(row).skip(i + 1) {
+        if tree.height > forest_line[j].height {
             scores[1] += 1;
         } else {
             scores[1] += 1;

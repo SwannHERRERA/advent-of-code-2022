@@ -28,7 +28,7 @@ impl Timer {
         match command {
             Command::Noop => {
                 self.next_value = None;
-            },
+            }
             Command::AddX(value) => {
                 let _ = self.next_value.insert(value);
                 self.consume_next_value();
@@ -58,7 +58,7 @@ impl Timer {
     }
 
     fn is_sharp(&self) -> bool {
-        let spirit_start = self.value - 1; 
+        let spirit_start = self.value - 1;
         let spirit_end = self.value + 1;
         let cycle = self.current_cycle as i64 % 40;
         spirit_end >= cycle && cycle >= spirit_start
@@ -82,8 +82,12 @@ impl Timer {
 
     fn add_signal_strengh(&mut self) {
         if self.is_observed() {
-            self.signial_strengh_over_time.push(self.current_cycle as i64 * self.value);
-            println!("cycle : {}, {:?}", self.current_cycle, self.signial_strengh_over_time);
+            self.signial_strengh_over_time
+                .push(self.current_cycle as i64 * self.value);
+            println!(
+                "cycle : {}, {:?}",
+                self.current_cycle, self.signial_strengh_over_time
+            );
         }
     }
 }

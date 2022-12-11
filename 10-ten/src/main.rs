@@ -2,7 +2,7 @@ mod timer;
 use std::fs;
 use timer::*;
 
-fn parse_line(line:&str) -> Command {
+fn parse_line(line: &str) -> Command {
     if line == "noop" {
         return Command::Noop;
     }

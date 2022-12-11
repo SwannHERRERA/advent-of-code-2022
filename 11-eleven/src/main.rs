@@ -2,11 +2,13 @@ use std::fs;
 
 use types::Monkey;
 
-use crate::{parsing::parse_monkeys, types::{ROUND_PART_TWO, ROUND_PART_ONE}};
+use crate::{
+    parsing::parse_monkeys,
+    types::{ROUND_PART_ONE, ROUND_PART_TWO},
+};
 
-mod types;
 mod parsing;
-
+mod types;
 
 fn main() {
     let input = fs::read_to_string("11-eleven/input.txt").unwrap();
@@ -49,15 +51,17 @@ fn exec_round(monkeys: &mut Vec<Monkey>, trick: Option<usize>) {
     });
 }
 
-fn process_round_for_an_item(monkey_index: usize, monkeys: &mut Vec<Monkey>, trick: Option<usize>) {
+fn process_round_for_an_item(monkey_index: usize, monkeys: &mut [Monkey], trick: Option<usize>) {
     let monkey = monkeys.get_mut(monkey_index).unwrap();
-    let item = monkey.items.pop_front().unwrap();// removing at start move back other items
+    let item = monkey.items.pop_front().unwrap(); // removing at start move back other items
     let new_item = monkey.inspect(item, trick);
     let index_monkey_dest = monkey.process_monkey_dest(new_item);
-    drop(monkey);
-    monkeys.get_mut(index_monkey_dest).unwrap().items.push_back(new_item);
+    monkeys
+        .get_mut(index_monkey_dest)
+        .unwrap()
+        .items
+        .push_back(new_item);
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -105,6 +109,4 @@ Monkey 3:
         let monkey_buisiness = part_two(INPUT);
         assert_eq!(EXPECTED_MONKEY_BUSINESS, monkey_buisiness);
     }
-
-
 }

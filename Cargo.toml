@@ -11,5 +11,6 @@ members = [
   "09-nine",
   "10-ten",
   "11-eleven",
+  "12-twelve",
   "test_utils",
 ]

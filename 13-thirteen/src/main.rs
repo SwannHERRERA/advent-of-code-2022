@@ -1,4 +1,5 @@
-use std::{fs, collections::VecDeque, cmp::Ordering::{self, *}};
+use itertools::Itertools;
+use std::{fs, collections::VecDeque, cmp::Ordering::{self, *}, fmt::Display};
 
 #[derive(Debug, Clone, Eq)]
 enum Value {
@@ -15,15 +16,15 @@ impl From<i32> for Value {
 impl PartialEq for Value {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::List(l0), Self::List(r0)) => l0 == r0,
-            (Self::Num(l0), Self::Num(r0)) => {
-                l0 == r0
+            (Self::List(l), Self::List(r)) => l == r,
+            (Self::Num(l), Self::Num(r)) => {
+                l == r
             }
-            (Self::List(l0), Self::Num(r0)) => {
-                l0 == &vec![Value::Num(*r0)]
+            (Self::List(l), Self::Num(r)) => {
+                l == &vec![Value::Num(*r)]
             }
-            (Self::Num(l0), Self::List(r0)) => {
-                &vec![Value::Num(*l0)] == r0
+            (Self::Num(l), Self::List(r)) => {
+                &vec![Value::Num(*l)] == r
             }
         }
     }
@@ -55,6 +56,28 @@ impl Ord for Value {
     }
 }
 
+impl Display for Value {
+    fn fmt(
+        &self,
+        f: &mut std::fmt::Formatter<'_>,
+    ) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Value::List(list) => format!(
+                    "[{}]",
+                    list.iter()
+                        .map(|v| v.to_string())
+                        .intersperse(",".to_string())
+                        .collect::<String>()
+                ),
+                Value::Num(num) => num.to_string(),
+            }
+        )
+    }
+}
+
 fn main() {
     let input = fs::read_to_string("13-thirteen/input.txt").unwrap();
     let part_one = part_one(&input);
@@ -71,6 +94,12 @@ fn part_one(input: &str) -> usize {
     pairs
         .iter()
         .enumerate()
+        .map(|(i, [l, r])| {
+            println!("{}", l);
+            println!("{}", r);
+            println!("");
+            (i, [l, r])
+        })
         .filter_map(|(i, [left, right])| {
             match left.cmp(right) {
                 Less => Some(i),
@@ -87,7 +116,8 @@ fn part_two(input: &str) -> usize {
 }
 
 fn parse_pair(input: &str) -> [Value;2] {
-    let (mut line_1, mut line_2) = input.split_once('\n').unwrap();
+    println!("{input}");
+    let (line_1, line_2) = input.split_once('\n').unwrap();
     let line_1 = parse_value(line_1);
     println!("-------------------");
     let line_2 = parse_value(line_2);
@@ -99,13 +129,11 @@ fn parse_value(mut line: &str) -> Value {
     let mut list = Vec::new();
     let mut chars: VecDeque<char> = line.chars().skip(1).collect();
     loop {
-        dbg!(&chars);
         let x: usize = chars.iter().take_while(|c| !BLOCKING_CHARS.contains(c)).count();
         let str: String = chars.drain(0..x).collect();
         let Some(blocking_char) = chars.pop_front() else {
             return Value::List(list);
         };
-        dbg!(x, blocking_char);
         if !str.is_empty() {
             let value = Value::Num(str.parse().unwrap());
             list.push(value);
@@ -116,7 +144,6 @@ fn parse_value(mut line: &str) -> Value {
         if blocking_char == '[' {
             let closing_tag = line.find(']').unwrap();
             let (part, next) = line.split_at(closing_tag+1);
-            dbg!(part, next, x);
             list.push(parse_value(&part[1..]));
             chars = chars.iter().skip_while(|x| **x != ']').skip(1).copied().collect();
             line = next;

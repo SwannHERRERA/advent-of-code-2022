@@ -1,82 +1,9 @@
+use std::{fs, collections::VecDeque, cmp::Ordering::*};
+
 use itertools::Itertools;
-use std::{fs, collections::VecDeque, cmp::Ordering::{self, *}, fmt::Display};
+use value::Value;
 
-#[derive(Debug, Clone, Eq)]
-enum Value {
-    Num(u8),
-    List(Vec<Value>),
-}
-
-impl From<i32> for Value {
-    fn from(num: i32) -> Self {
-        Value::Num(num as u8)
-    }
-}
-
-impl PartialEq for Value {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::List(l), Self::List(r)) => l == r,
-            (Self::Num(l), Self::Num(r)) => {
-                l == r
-            }
-            (Self::List(l), Self::Num(r)) => {
-                l == &vec![Value::Num(*r)]
-            }
-            (Self::Num(l), Self::List(r)) => {
-                &vec![Value::Num(*l)] == r
-            }
-        }
-    }
-}
-
-impl PartialOrd for Value {
-    fn partial_cmp(
-        &self,
-        other: &Self,
-    ) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Value {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        match (self, other) {
-            (Value::List(a), Value::List(b)) => a.cmp(b),
-            (Value::List(a), Value::Num(b)) => {
-                a.cmp(&vec![Value::Num(*b)])
-            }
-            (Value::Num(a), Value::List(b)) => {
-                vec![Value::Num(*a)].cmp(&b)
-            }
-            (Value::Num(a), Value::Num(b)) => {
-                a.cmp(b)
-            }
-        }
-    }
-}
-
-impl Display for Value {
-    fn fmt(
-        &self,
-        f: &mut std::fmt::Formatter<'_>,
-    ) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Value::List(list) => format!(
-                    "[{}]",
-                    list.iter()
-                        .map(|v| v.to_string())
-                        .intersperse(",".to_string())
-                        .collect::<String>()
-                ),
-                Value::Num(num) => num.to_string(),
-            }
-        )
-    }
-}
+mod value;
 
 fn main() {
     let input = fs::read_to_string("13-thirteen/input.txt").unwrap();
@@ -112,50 +39,82 @@ fn part_one(input: &str) -> usize {
 }
 
 fn part_two(input: &str) -> usize {
-    todo!()
+    let six = Value::List(vec![Value::List(vec![Value::Num(6)])]);
+    let two = Value::List(vec![Value::List(vec![Value::Num(2)])]);
+    let mut values: Vec<Value> = input
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| parse_value(line.to_string()))
+        .collect();
+    values.push(six.clone());
+    values.push(two.clone());
+    values.sort();
+    let pos_two = values.iter().find_position(|x| **x == two).unwrap();
+    let pos_six = values.iter().find_position(|x| **x == six).unwrap();
+    (pos_two.0 + 1) * (pos_six.0 + 1)
 }
 
 fn parse_pair(input: &str) -> [Value;2] {
-    println!("{input}");
     let (line_1, line_2) = input.split_once('\n').unwrap();
-    let line_1 = parse_value(line_1);
-    println!("-------------------");
-    let line_2 = parse_value(line_2);
-    [line_1, line_2]
+    let line_1 = parse_value(line_1.to_string());
+    // println!("-------------------");
+    let line_2 = parse_value(line_2.to_string());
+    match (line_1, line_2) {
+        (Value::List(list1), Value::List(list2)) => [list1[0].clone(), list2[0].clone()],
+        _ => unreachable!(),
+    }
 }
 
-fn parse_value(mut line: &str) -> Value {
+fn parse_value(line: String) -> Value {
     const BLOCKING_CHARS: [char; 3] = ['[', ']', ','];
+    if line.is_empty() {
+        return Value::List(Vec::new());
+    }
     let mut list = Vec::new();
-    let mut chars: VecDeque<char> = line.chars().skip(1).collect();
+    let mut chars: VecDeque<char> = line.chars().collect();
     loop {
-        let x: usize = chars.iter().take_while(|c| !BLOCKING_CHARS.contains(c)).count();
-        let str: String = chars.drain(0..x).collect();
-        let Some(blocking_char) = chars.pop_front() else {
+        if chars.is_empty() {
             return Value::List(list);
-        };
+        }
+        let end: usize = chars.iter().take_while(|c| !BLOCKING_CHARS.contains(c)).count();
+        let str: String = chars.drain(0..end).collect();
         if !str.is_empty() {
-            let value = Value::Num(str.parse().unwrap());
-            list.push(value);
+            if let Ok(value) = str.parse() {
+                list.push(Value::Num(value));
+            }
         }
-        if blocking_char == ']' {
-            return Value::List(list);
+        if let Some(blocking_char) = chars.pop_front() {
+            if blocking_char == '[' {
+                let new_line: String = chars.iter().collect();
+                let closing_tag_index = find_index_last_closing_bracket(&new_line);
+                let (part, _next) = new_line.split_at(closing_tag_index);
+                list.push(parse_value(part.to_string()));
+                chars = chars.iter().skip(closing_tag_index).copied().collect();
+            }
+        };
+    }
+}
+
+fn find_index_last_closing_bracket(line: &str) -> usize {
+    let mut count_bracket = 0;
+    for (i, c) in line.chars().enumerate() {
+        if count_bracket == 0 && c == ']' {
+            return i;
         }
-        if blocking_char == '[' {
-            let closing_tag = line.find(']').unwrap();
-            let (part, next) = line.split_at(closing_tag+1);
-            list.push(parse_value(&part[1..]));
-            chars = chars.iter().skip_while(|x| **x != ']').skip(1).copied().collect();
-            line = next;
+        if c == '[' {
+            count_bracket += 1;
+        }
+        if c == ']' {
+            count_bracket -= 1;
         }
     }
+    unreachable!();
 }
 
 
 #[cfg(test)]
 mod tests {
     use test_utils::vec_eq;
-
     use super::*;
 
     #[test]
@@ -196,9 +155,10 @@ mod tests {
             Value::List(vec![1.into(),1.into(),5.into(),1.into(),1.into()]),
         ];
         let result = parse_pair(INPUT);
+        dbg!(&result);
         assert!(vec_eq(expected.to_vec(), result.to_vec()));
-        dbg!(result);
     }
+
     #[test]
     fn test_parsing_with_sub_array() {
         const INPUT: &str = "[[1],[2,3,4]]
@@ -208,7 +168,54 @@ mod tests {
             Value::List(vec![Value::List(vec![1.into()]), Value::Num(4)]),
         ];
         let result = parse_pair(INPUT);
+        dbg!(&result, &expected);
 
         assert!(vec_eq(expected.to_vec(), result.to_vec()));
+    }
+
+    // Should not panic
+    #[test]
+    fn test_advanced_parsing() {
+        const INPUT: &str = "[[1,[0,3,5,[2,1,3,3,5]],4,[[],5]],[],[0,[7,[5],7,7]]]
+[[[],[[],[5,2,8,9,7],1,5],[3,[]]]]";
+        let result = parse_pair(INPUT);
+        dbg!(result);
+    }
+
+    #[test]
+    fn test_empty_arrays() {
+        const INPUT: &str = "[[[]]]
+[[]]";
+        let result = parse_pair(INPUT);
+        dbg!(&result);
+        assert!(result[0] > result[1]);
+    }
+
+    #[test]
+    fn test_part_two() {
+        const INPUT: &str = "[1,1,3,1,1]
+[1,1,5,1,1]
+
+[[1],[2,3,4]]
+[[1],4]
+
+[9]
+[[8,7,6]]
+
+[[4,4],4,4]
+[[4,4],4,4,4]
+
+[7,7,7,7]
+[7,7,7]
+
+[]
+[3]
+
+[[[]]]
+[[]]
+
+[1,[2,[3,[4,[5,6,7]]]],8,9]
+[1,[2,[3,[4,[5,6,0]]]],8,9]";
+        assert_eq!(140, part_two(INPUT));
     }
 }

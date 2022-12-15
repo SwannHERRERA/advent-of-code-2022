@@ -51,9 +51,7 @@ impl Rope {
         for idx in 1..segments.len() {
             let predecesor = segments[idx - 1];
             let element = &mut segments[idx];
-            if let Some(new_root_position) =
-                Self::compute_future_position_of_the_tail(predecesor, *element)
-            {
+            if let Some(new_root_position) = Self::next_position(predecesor, *element) {
                 *element = new_root_position;
                 if idx == length - 1 {
                     position_discovery.insert(*element);
@@ -71,7 +69,7 @@ impl Rope {
         }
     }
 
-    fn compute_future_position_of_the_tail(head: Position, tail: Position) -> Option<Position> {
+    fn next_position(head: Position, tail: Position) -> Option<Position> {
         if !Self::is_tail_far_away(tail, head) {
             return None;
         }

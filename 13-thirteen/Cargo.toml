@@ -1,0 +1,12 @@
+[package]
+name = "thirteen"
+version = "0.0.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+itertools = "0.10.5"
+
+[dev-dependencies]
+test_utils = { path = "../test_utils" }

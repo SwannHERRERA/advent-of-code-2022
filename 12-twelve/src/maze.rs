@@ -10,13 +10,13 @@ pub struct Maze<'a> {
 impl<'a> Maze<'a> {
     pub fn new(bytes: &'a Vec<u8>, line_length: usize) -> Self {
         Maze {
-            bytes: &bytes,
+            line_length,
+            bytes,
             queue: VecDeque::new(),
             backlinks: vec![None; bytes.len()],
-            line_length,
         }
     }
-   
+
     pub fn visit_neighbours(&mut self, pos: usize) {
         if pos % self.line_length > 0 {
             self.visit_neighbour(pos, pos - 1);

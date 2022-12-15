@@ -1,4 +1,4 @@
-use std::{fs, collections::VecDeque, cmp::Ordering::*};
+use std::{cmp::Ordering::*, collections::VecDeque, fs};
 
 use itertools::Itertools;
 use value::Value;
@@ -14,28 +14,17 @@ fn main() {
 }
 
 fn part_one(input: &str) -> usize {
-    let pairs: Vec<[Value; 2]> = input
-        .split("\n\n")
-        .map(|pair| parse_pair(pair))
-        .collect();
+    let pairs: Vec<[Value; 2]> = input.split("\n\n").map(parse_pair).collect();
     pairs
         .iter()
         .enumerate()
-        .map(|(i, [l, r])| {
-            println!("{}", l);
-            println!("{}", r);
-            println!("");
-            (i, [l, r])
+        .filter_map(|(i, [left, right])| match left.cmp(right) {
+            Less => Some(i),
+            Equal => unreachable!(),
+            Greater => None,
         })
-        .filter_map(|(i, [left, right])| {
-            match left.cmp(right) {
-                Less => Some(i),
-                Equal => unreachable!(),
-                Greater => None,
-            }
-        })
-    .map(|x| x + 1)
-    .sum()
+        .map(|x| x + 1)
+        .sum()
 }
 
 fn part_two(input: &str) -> usize {
@@ -54,7 +43,7 @@ fn part_two(input: &str) -> usize {
     (pos_two.0 + 1) * (pos_six.0 + 1)
 }
 
-fn parse_pair(input: &str) -> [Value;2] {
+fn parse_pair(input: &str) -> [Value; 2] {
     let (line_1, line_2) = input.split_once('\n').unwrap();
     let line_1 = parse_value(line_1.to_string());
     // println!("-------------------");
@@ -76,7 +65,10 @@ fn parse_value(line: String) -> Value {
         if chars.is_empty() {
             return Value::List(list);
         }
-        let end: usize = chars.iter().take_while(|c| !BLOCKING_CHARS.contains(c)).count();
+        let end: usize = chars
+            .iter()
+            .take_while(|c| !BLOCKING_CHARS.contains(c))
+            .count();
         let str: String = chars.drain(0..end).collect();
         if !str.is_empty() {
             if let Ok(value) = str.parse() {
@@ -111,11 +103,10 @@ fn find_coresponding_bracket(line: &str) -> usize {
     unreachable!();
 }
 
-
 #[cfg(test)]
 mod tests {
-    use test_utils::vec_eq;
     use super::*;
+    use test_utils::vec_eq;
 
     #[test]
     fn test_part_one() {
@@ -151,8 +142,8 @@ mod tests {
         const INPUT: &str = "[1,1,3,1,1]
 [1,1,5,1,1]";
         let expected: [Value; 2] = [
-            Value::List(vec![1.into(),1.into(),3.into(),1.into(),1.into()]),
-            Value::List(vec![1.into(),1.into(),5.into(),1.into(),1.into()]),
+            Value::List(vec![1.into(), 1.into(), 3.into(), 1.into(), 1.into()]),
+            Value::List(vec![1.into(), 1.into(), 5.into(), 1.into(), 1.into()]),
         ];
         let result = parse_pair(INPUT);
         dbg!(&result);
@@ -164,7 +155,10 @@ mod tests {
         const INPUT: &str = "[[1],[2,3,4]]
 [[1],4]";
         let expected: [Value; 2] = [
-            Value::List(vec![Value::List(vec![1.into()]),Value::List(vec![2.into(), 3.into(), 4.into()])]),
+            Value::List(vec![
+                Value::List(vec![1.into()]),
+                Value::List(vec![2.into(), 3.into(), 4.into()]),
+            ]),
             Value::List(vec![Value::List(vec![1.into()]), Value::Num(4)]),
         ];
         let result = parse_pair(INPUT);

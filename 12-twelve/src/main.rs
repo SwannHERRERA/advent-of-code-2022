@@ -10,7 +10,7 @@ fn main() {
     let input = fs::read("12-twelve/input.txt").unwrap();
     let part_one = part_one(input.clone());
     println!("part one: {}", part_one);
-    let part_two = part_two(input.clone());
+    let part_two = part_two(input);
     println!("part two: {}", part_two);
 }
 

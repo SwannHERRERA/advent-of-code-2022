@@ -86,8 +86,8 @@ fn parse_value(line: String) -> Value {
         if let Some(blocking_char) = chars.pop_front() {
             if blocking_char == '[' {
                 let new_line: String = chars.iter().collect();
-                let closing_tag_index = find_index_last_closing_bracket(&new_line);
-                let (part, _next) = new_line.split_at(closing_tag_index);
+                let closing_tag_index = find_coresponding_bracket(&new_line);
+                let (part, _) = new_line.split_at(closing_tag_index);
                 list.push(parse_value(part.to_string()));
                 chars = chars.iter().skip(closing_tag_index).copied().collect();
             }
@@ -95,7 +95,7 @@ fn parse_value(line: String) -> Value {
     }
 }
 
-fn find_index_last_closing_bracket(line: &str) -> usize {
+fn find_coresponding_bracket(line: &str) -> usize {
     let mut count_bracket = 0;
     for (i, c) in line.chars().enumerate() {
         if count_bracket == 0 && c == ']' {

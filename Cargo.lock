@@ -228,6 +228,9 @@ version = "0.0.0"
 [[package]]
 name = "fourteen"
 version = "0.0.0"
+dependencies = [
+ "test_utils",
+]
 
 [[package]]
 name = "half"

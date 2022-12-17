@@ -1,135 +1,192 @@
+use std::collections::HashMap;
 use std::fs;
 
-type Position = (i32, i32);
-type Structure = Vec<Position>;
-type Structures = Vec<Structure>;
-type Map = Vec<Vec<char>>;
+use anyhow::Result;
+
+/// Rightward
+type X = isize;
+
+/// Downward
+type Y = isize;
+
+const START_POSITION: (X, Y) = (500, 0);
+
+#[derive(PartialEq, Eq, Clone)]
+enum Material {
+    Rock,
+    Sand,
+}
 
 fn main() {
     let input = fs::read_to_string("14-fourteen/input.txt").unwrap();
-    part_one(&input);
+    // let part_one = part_one(&input);
+    let part_two = part_two(&input);
+    // println!("part one : {}", part_one);
+    println!("part two : {}", part_two);
 }
 
-fn print_map(map: &Map) {
-   for line in map {
-    let current: String = line.iter().collect();
-     println!("{current}"); 
-  } 
-}
-
+#[allow(unused)]
 fn part_one(input: &str) -> usize {
-    let (structs, source) = parse_structs(input);
-    let map = create_map(&structs);
-    let map = place_rocks(&structs, map);
-    let map = place_sand_source(map, source);
-    print_map(&map);
-    let map = fall_sand(map, source);
+    let mut grid = parse_input(input).unwrap();
+    // draw_grid(&grid);
 
-    todo!()
+    let y_max = y_max(&grid);
+    while let Some(new_position) = sand_fall(&grid, START_POSITION, y_max) {
+        grid.insert(new_position, Material::Sand);
+    }
+    // draw_grid(&grid);
+
+    grid.values().filter(|m| **m == Material::Sand).count()
 }
 
-fn fall_sand(map: Map, source: usize) -> Map {
-    let mut y = map[0].len();
-    loop {
-        if map[source][y] == 'o' || map[source][y] == '#' {
-            // try lower left and  lower right
-            // if cannot
+fn part_two(input: &str) -> usize {
+    let mut grid = parse_input(input).unwrap();
+
+    let y_max = y_max(&grid);
+
+    // bad way but it works
+    let x_min = x_min(&grid) - 200;
+    let x_max = x_max(&grid) + 200;
+
+    for x in x_min..=x_max {
+        grid.insert((x, y_max + 2), Material::Rock);
+    }
+
+    // draw_grid(&grid);
+
+    let mut counter = 0;
+    let y_max = y_max + 2;
+    while let Some(new_position) = sand_fall(&grid, START_POSITION, y_max) {
+        grid.insert(new_position, Material::Sand);
+        counter += 1;
+        if new_position == START_POSITION {
             break;
         }
-    };
-    map
+    }
+    // draw_grid(&grid);
+
+    counter
 }
 
-fn place_sand_source(mut map: Map, source: usize) -> Map {
-    map[0][source] = '+';
-    map
-}
+fn parse_input(input: &str) -> Result<HashMap<(X, Y), Material>> {
+    let mut out = HashMap::new();
 
-fn place_rocks(structs: &Structures, mut map: Map) -> Map {
-    for command in structs {
-        for i in 0..(command.len() - 1) {
-            let point = command[i];
-            let next_point = command[i+1];
-            let mut point = (point.0 as usize, point.1 as usize);
-            let next_point = (next_point.0 as usize, next_point.1 as usize);
-            while point != next_point {
-                map[point.0][point.1] = '#';
-                if point.0 < next_point.0 {
-                    point.0 += 1;
-                }
-                if point.0 > next_point.0 {
-                    point.0 -= 1;
-                }
-                if point.1 < next_point.1 {
-                    point.1 += 1;
-                }
-                if point.1 > next_point.1 {
-                    point.1 -= 1;
+    let paths: Vec<Vec<(X, Y)>> = input
+        .lines()
+        .map(|line| {
+            line.split(" -> ")
+                .map(|s| s.split_once(',').unwrap())
+                .map(|(x, y)| {
+                    let x: isize = x.parse().unwrap();
+                    let y: isize = y.parse().unwrap();
+                    (x, y)
+                })
+                .collect()
+        })
+        .collect();
+
+    for path in paths {
+        for window in path[..].windows(2) {
+            if let [(x1, y1), (x2, y2)] = window {
+                for x in *x1.min(x2)..=*x1.max(x2) {
+                    for y in *y1.min(y2)..=*y1.max(y2) {
+                        out.insert((x, y), Material::Rock);
+                    }
                 }
             }
         }
     }
-    map
+    Ok(out)
 }
 
-fn create_map(structures: &Structures) -> Map {
-    let (max_x, max_y) = find_max(&structures);
-    // println!("{}. {}", max_x, max_y);
-    let mut lines: Vec<Vec<char>> = Vec::with_capacity(max_x as usize);
-    for _ in 0..max_x {
-        lines.push(vec![' '; max_y]);
+fn sand_fall(grid: &HashMap<(X, Y), Material>, start: (X, Y), y_max: Y) -> Option<(X, Y)> {
+    let mut y = start.1;
+    let mut x = start.0;
+
+    while y < y_max {
+        let down = (x, y + 1);
+        let left = (x - 1, y + 1);
+        let right = (x + 1, y + 1);
+        match (grid.get(&down), grid.get(&left), grid.get(&right)) {
+            (Some(_), Some(_), Some(_)) => {
+                return Some((x, y));
+            }
+            (None, _, _) => {
+                y += 1;
+            }
+            (_, None, _) => {
+                y += 1;
+                x -= 1;
+            }
+            (_, _, None) => {
+                y += 1;
+                x += 1;
+            }
+        }
     }
-    lines
+
+    None
 }
 
-fn parse_structs(input: &str) -> (Structures, usize) {
-    let structs: Structures = parse_inputs(input);
-    let (min_x, _) = find_min(&structs);
-    let structures = structs
-        .iter()
-        .map(|line| line
-             .iter()
-             .map(|(x, y)| (x - min_x, *y))
-             .collect()
-        )
-        .collect();
-    (structures, 500-min_x as usize)
+fn y_max(grid: &HashMap<(X, Y), Material>) -> Y {
+    grid.keys().map(|(_, l)| *l).max().unwrap_or(0)
 }
 
-fn parse_inputs(input: &str) -> Structures {
-    input.lines().map(parse_line).collect()
+fn y_min(grid: &HashMap<(X, Y), Material>) -> Y {
+    grid.keys().map(|(_, l)| *l).min().unwrap_or(0)
 }
 
-fn parse_line(line: &str) -> Structure {
-    line
-        .split(" -> ")
-        .map(|segment| segment.split_once(',').unwrap())
-        .map(|(x, y)| (x.parse().unwrap(), y.parse().unwrap()))
-        .collect()
+fn x_max(grid: &HashMap<(X, Y), Material>) -> Y {
+    grid.keys().map(|(r, _)| *r).max().unwrap_or(0)
 }
 
-fn find_min(structs: &Structures) -> Position {
-    let min_x = structs.iter().map(|line| line.iter().map(|(x, _)| x).min().unwrap()).min().unwrap_or(&0);
-    let min_y = structs.iter().map(|line| line.iter().map(|(_, y)| y).min().unwrap()).min().unwrap_or(&0);
-    (*min_x, *min_y)
+fn x_min(grid: &HashMap<(X, Y), Material>) -> Y {
+    grid.keys().map(|(r, _)| *r).min().unwrap_or(0)
+
 }
 
-fn find_max(structs: &Structures) -> (usize, usize) {
-    let max_x: usize = structs.iter().map(|line| line.iter().map(|(x, _)| *x as usize).max().unwrap()).max().unwrap_or(0);
-    let max_y: usize = structs.iter().map(|line| line.iter().map(|(_, y)| *y as usize).max().unwrap()).max().unwrap_or(0);
-    (max_x + 1, max_y + 1)
+#[allow(unused)]
+fn draw_grid(grid: &HashMap<(X, Y), Material>) {
+    let x_min = x_min(grid);
+    let x_max = x_max(grid);
+    let y_min = y_min(grid);
+    let y_max = y_max(grid);
+
+    println!();
+
+    for y in y_min..=y_max {
+        print!("{y:3} ");
+        for x in x_min..=x_max {
+            print!(
+                "{}",
+                match grid.get(&(x, y)) {
+                    Some(Material::Rock) => "#",
+                    Some(Material::Sand) => "o",
+                    None => ".",
+                }
+            )
+        }
+        println!();
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test_utils::vec_eq;
+
+    const INPUT: &str = "498,4 -> 498,6 -> 496,6
+503,4 -> 502,4 -> 502,9 -> 494,9";
 
     #[test]
-    fn test_parse_line() {
-        const LINE: &str = "498,4 -> 498,6 -> 496,6";
-        let res = parse_line(LINE);
-        let expected = vec![(498, 4), (498, 6), (496, 6)];
-        assert!(vec_eq(expected, res));
+    fn test_part_one() {
+        let res = part_one(INPUT);
+        assert_eq!(24, res);
+        
+    }
+
+    #[test]
+    fn test_part_two() {
+        let res = part_two(INPUT);
+        assert_eq!(93, res);
     }
 }

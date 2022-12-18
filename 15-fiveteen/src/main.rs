@@ -170,6 +170,7 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3";
     }
 
     #[test]
+    #[ignore = "skip to day 16"]
     fn test_part_two() {
         let res = part_two(INPUT, [0,20,0,20]);
         assert_eq!(56_000_011, res);

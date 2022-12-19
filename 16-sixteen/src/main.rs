@@ -1,97 +1,86 @@
-use std::{rc::Rc, cell::RefCell, fs, collections::HashMap};
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone)]
-struct Valve<'a> {
-    is_lock: bool,
-    flow_rate: usize,
-    tunnels: Vec<&'a str>
+struct VolcanoState {
+    total_pressure_release: usize,
+    minutes_remaining: u8,
+    current_flow_rate: usize,
+    valve_open: HashSet<String>,
 }
 
-impl<'a> Valve<'a> {
-    fn new(flow_rate: usize) -> Self {
-        Valve { flow_rate, tunnels: Vec::new(), is_lock: true }
+impl VolcanoState {
+    fn new() -> Self {
+        VolcanoState {
+            total_pressure_release: 0,
+            minutes_remaining: 30,
+            current_flow_rate: 0,
+            valve_open: HashSet::new(),
+        }
     }
+}
+
+struct Node {
+    id: usize,
+    flow_rate: usize,
+    name: String,
+}
+
+struct NodeInRec {
+    id: usize,
+    time_to_be_reach: usize,
+    release_potentiel: usize,
 }
 
 fn main() {
-    let input = fs::read_to_string("16-sixteen/input.txt").unwrap();
-    let part_one = part_one(&input);
-    println!("part one : {}", part_one);
+
 }
 
-fn part_one(input:&str) -> usize {
-    let valves = parse_input(input);
-    let valves = Rc::new(RefCell::new(valves));
-    let result: Rc<RefCell<Vec<usize>>> = Rc::new(RefCell::new(Vec::new()));
-    part_one_recu(result.clone(), valves, "AA", 0, 0);
-    let res = result.take();
-    println!("{:?}", res);
-    *res.iter().max().unwrap()
-}
-
-fn part_one_recu<'a>(result: Rc<RefCell<Vec<usize>>>, valves: Rc<RefCell<HashMap<&'a str, Valve<'a>>>>, current_position: &str, minutes: u8, mut current_sum: usize) {
-    eprintln!("{minutes}");
-    if minutes >= 30 {
-        compute_pressure_release(valves.clone(), result.clone(), current_sum);
-        return;
-    }
-    let valve = find_valve(current_position, valves.clone());
-    for tunnel in valve.tunnels {
-        let new_valve = find_valve(tunnel, valves.clone());
-        if new_valve.is_lock {
-            current_sum += compute_pressure_release(valves.clone(), result.clone(), current_sum);
-            unlock(tunnel, valves.clone());
-            current_sum += compute_pressure_release(valves.clone(), result.clone(), current_sum);
-            part_one_recu(result.clone(), valves.clone(), tunnel, minutes + 3, current_sum);
-        } else {
-            current_sum += compute_pressure_release(valves.clone(), result.clone(), current_sum);
-            part_one_recu(result.clone(), valves.clone(), tunnel, minutes + 2, current_sum);
-        }
-    }
-    if minutes < 30 {
-        current_sum += compute_pressure_release(valves.clone(), result.clone(), current_sum);
-        part_one_recu(result.clone(), valves.clone(), current_position, minutes + 1, current_sum);
+fn pondere_graph(adjacency: &mut Vec<Vec<Option<usize>>>, nodes: &Vec<Node>, start_point: usize, state: &VolcanoState) {
+    for (i, x) in adjacency[start_point].iter().enumerate().filter(|(i, x)| x.is_some()) {
+        
     }
 }
 
-fn compute_pressure_release<'a>(valves: Rc<RefCell<HashMap<&str ,Valve<'a>>>>, result: Rc<RefCell<Vec<usize>>>, current_sum: usize) -> usize {
-    let valves = valves.borrow();
-    let sum = valves.values().filter(|v| !v.is_lock).map(|v| v.flow_rate).sum();
-    let mut result = result.borrow_mut();
-    result.push(sum + current_sum);
-    sum
+fn pondere_adjacency(adjacency: &mut Vec<Vec<Option<usize>>>, nodes: &Vec<Node>, visited: Vec<usize>, start: usize, state: &VolcanoState,) {
+    let count = adjacency[start].iter().enumerate().filter(|(i, x)| x.is_some() && !visited.contains(i)).count();
+    // 
 }
 
-fn find_valve<'a>(name: &str, valves: Rc<RefCell<HashMap<&'a str, Valve<'a>>>>) -> Valve<'a> {
-    let valves = valves.borrow();
-    valves.get(name).unwrap().clone()
+
+fn parse_line(line: &str) -> (&str, usize, &str) {
+    let (_, x) = line.split_once(' ').unwrap();
+    let (name, x) = x.split_once(' ').unwrap();
+    let (_, x) = x.split_once('=').unwrap();
+    let (flow_rate, x) = x.split_once(';').unwrap();
+    let mut option = x.split_once("valves ");
+    if option.is_none() {
+        option = x.split_once("valve ");
+    }
+    let (_, connections) = option.unwrap();
+    let flow_rate: usize = flow_rate.parse().unwrap();
+    (name, flow_rate, connections)
 }
 
-fn unlock<'a>(name: &str, valves: Rc<RefCell<HashMap<&str ,Valve<'a>>>>)  {
-    let mut valves = valves.borrow_mut();
-    let valve = valves.get_mut(name).unwrap();
-    valve.is_lock = false;
-}
-
-fn parse_input<'a>(input: &'a str) -> HashMap<&'a str, Valve<'a>> {
-    input.lines().map(|line| {
-        let (_, x) = line.split_once(' ').unwrap();
-        let (name, x) = x.split_once(' ').unwrap();
-        let (_, x) = x.split_once('=').unwrap();
-        let (flow_rate, x) = x.split_once(';').unwrap();
-        println!("{x}");
-        let mut option = x.split_once("valves ");
-        if option.is_none() {
-            option = x.split_once("valve ");
-        }
-        let (_, connections) = option.unwrap();
-        let flow_rate: usize = flow_rate.parse().unwrap();
-        let mut valve = Valve::new(flow_rate);
-        for connection in connections.split(", ") {
-            valve.tunnels.push(connection);
-        }
-        (name, valve)
+fn create_nodes(input: &str) -> Vec<Node> {
+    input.lines().enumerate().map(|(id, line)| {
+        let (name, flow_rate, _connections) = parse_line(line);
+        Node { name: name.to_string(), id, flow_rate }
     }).collect()
+}
+
+fn create_matrix(input: &str, nodes: &Vec<Node>) -> Vec<Vec<Option<usize>>> {
+    let mut vec: Vec<Vec<Option<usize>>> = Vec::with_capacity(nodes.len());
+    for _ in 0..nodes.len() {
+        vec.push(vec![None; nodes.len()]);
+    }
+    input.lines().enumerate().for_each(|(id, line)| {
+        let (_, _, connections) = parse_line(line);
+        for connection in connections.split(", ") {
+            let connection: usize = nodes.iter().find(|node| node.name == connection).unwrap().id;
+            vec[id][connection] = Some(0);
+        }
+    });
+    vec
 }
 
 #[cfg(test)]
@@ -110,8 +99,22 @@ Valve II has flow rate=0; tunnels lead to valves AA, JJ
 Valve JJ has flow rate=21; tunnel leads to valve II";
 
     #[test]
-    fn test_part_one() {
-        let res = part_one(INPUT);
-        assert_eq!(1651, res);
+    fn test_parsing_into_adjacence_matrix() {
+        let expected = vec![
+            vec![None, Some(0), None, Some(0), None, None, None, None, Some(0), None],
+            vec![Some(0), None, Some(0), None, None, None, None, None, None, None],
+            vec![None, Some(0), None, Some(0), None, None, None, None, None, None],
+            vec![Some(0), None, Some(0), None, Some(0), None, None, None, None, None],
+            vec![None, None, None, Some(0), None, Some(0), None, None, None, None],
+            vec![None, None, None, None, Some(0), None, Some(0), None, None, None],
+            vec![None, None, None, None, None, Some(0), None, Some(0), None, None],
+            vec![None, None, None, None, None, None, Some(0), None, None, None],
+            vec![Some(0), None, None, None, None, None, None, None, None, Some(0)],
+            vec![None, None, None, None, None, None, None, None, Some(0), None],
+        ];
+        let nodes = create_nodes(INPUT);
+        let res = create_matrix(INPUT, &nodes);
+        assert_eq!(expected, res);
     }
+
 }

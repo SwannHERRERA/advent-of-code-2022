@@ -36,9 +36,10 @@ impl Graph {
     }
 
     pub fn find_best_path_with_elephant(&self, minutes_allowed: isize) -> isize {
+        const HALF_OF_U16: u32 = 7;
         (0..u16::MAX/2).into_par_iter()
             .step_by(2)
-            .filter(|v| v.count_ones() == 7)
+            .filter(|v| v.count_ones() == HALF_OF_U16)
             .map(|visited| {
                 self.best_flow_part(visited, minutes_allowed - TIME_TO_TEACH_ELEPHANT)
                 + self.best_flow_part(!visited ^ 1, minutes_allowed - TIME_TO_TEACH_ELEPHANT)

@@ -1,6 +1,5 @@
 use std::{collections::BTreeMap, ops::RangeInclusive};
 
-
 #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
 pub struct Point {
     pub x: isize,
@@ -18,4 +17,4 @@ impl Point {
 }
 
 pub type MergedRange = (RangeInclusive<isize>, Option<isize>);
-pub type IndexedRanges = BTreeMap<isize, Vec<RangeInclusive<isize>>>; 
+pub type IndexedRanges = BTreeMap<isize, Vec<RangeInclusive<isize>>>;

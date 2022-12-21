@@ -1,12 +1,12 @@
-use std::fs;
 use graph::Graph;
+use std::fs;
 use valves::Valves;
 
 pub const TIME_TO_TEACH_ELEPHANT: isize = 4;
 pub const START_VALVE: &str = "AA";
 
-mod valves;
 mod graph;
+mod valves;
 
 fn main() {
     let input = fs::read_to_string("16-sixteen/input.txt").unwrap();

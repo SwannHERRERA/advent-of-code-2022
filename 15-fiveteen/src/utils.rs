@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
-use crate::{types::Point, sensor::{sensor_dist, beacons}};
-
+use crate::{
+    sensor::{beacons, sensor_dist},
+    types::Point,
+};
 
 #[allow(unused)]
 pub fn draw_grid(input: &HashMap<Point, Point>) {

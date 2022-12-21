@@ -1,4 +1,7 @@
-use std::{collections::{HashMap, VecDeque}, str::FromStr};
+use std::{
+    collections::{HashMap, VecDeque},
+    str::FromStr,
+};
 
 #[derive(Debug, Clone)]
 pub struct Valve {
@@ -12,14 +15,26 @@ impl FromStr for Valves {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut valves = HashMap::new();
-        for line in s.replace("valves","valve").lines() {
+        for line in s.replace("valves", "valve").lines() {
             let mut parts = line.split(" has flow rate=");
             let name = parts.next().unwrap().split(' ').last().unwrap().to_string();
             let mut parts = parts.next().unwrap().split(';');
             let flow_rate = parts.next().unwrap().parse().unwrap();
             let parts = parts.next().unwrap().split("valve ");
-            let tunnels = parts.last().unwrap().split(", ").map(|s| s.to_string()).collect();
-            valves.insert(name.clone(), Valve { name, flow_rate, tunnels });
+            let tunnels = parts
+                .last()
+                .unwrap()
+                .split(", ")
+                .map(|s| s.to_string())
+                .collect();
+            valves.insert(
+                name.clone(),
+                Valve {
+                    name,
+                    flow_rate,
+                    tunnels,
+                },
+            );
         }
         Ok(Valves { valves })
     }
@@ -43,7 +58,7 @@ impl Valves {
             visited.insert(valve_name.clone(), true);
             for tunnel in self.valves.get(&valve_name).unwrap().tunnels.iter() {
                 if !visited.contains_key(tunnel) {
-                    queue.push_back((tunnel.clone(), depth+1));
+                    queue.push_back((tunnel.clone(), depth + 1));
                 }
             }
         }

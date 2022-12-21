@@ -16,5 +16,6 @@ members = [
   "14-fourteen",
   "15-fiveteen",
   "16-sixteen",
+  "17-seventeen",
   "test_utils",
 ]

@@ -1,115 +1,162 @@
-#[derive(Debug, PartialEq, Eq)]
-enum Move {
+use std::slice::Iter;
+use std::iter::{Cycle, Enumerate};
+use std::{cmp, fs};
+use std::collections::{BTreeMap, BTreeSet};
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, PartialOrd, Ord)]
+enum Action {
     Left,
     Right,
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
-enum Cells {
-    Full,
-    Empty,
-}
-
-use std::fs;
-
-use Cells::*;
-
-const NUMBER_OF_COLS: usize = 7;
-
-type Shape<'a> = &'a [[Cells; 4]; 4];
-
-#[derive(Debug)]
-struct Tetris {
-    maxs: Vec<usize>,
-    shapes: Vec<[[Cells; 4]; 4]>,
-}
-
-impl Tetris {
-    pub fn init() -> Self {
-        let maxs = vec![0; NUMBER_OF_COLS];
-        let shapes = vec![
-            [
-                [Empty, Empty, Empty, Empty],
-                [Empty, Empty, Empty, Empty],
-                [Empty, Empty, Empty, Empty],
-                [Full, Full, Full, Full],
-            ],
-            [
-                [Empty, Empty, Empty, Empty],
-                [Empty, Full, Empty, Empty],
-                [Full, Full, Full, Empty],
-                [Empty, Full, Empty, Empty],
-            ],
-            [
-                [Empty, Empty, Empty, Empty],
-                [Empty, Empty, Full, Empty],
-                [Empty, Empty, Full, Empty],
-                [Full, Full, Full, Empty],
-            ],
-            [
-                [Full, Empty, Empty, Empty],
-                [Full, Empty, Empty, Empty],
-                [Full, Empty, Empty, Empty],
-                [Full, Empty, Empty, Empty],
-            ],
-            [
-                [Empty, Empty, Empty, Empty],
-                [Empty, Empty, Empty, Empty],
-                [Full, Full, Empty, Empty],
-                [Full, Full, Empty, Empty],
-            ],
-        ];
-        Tetris { maxs, shapes }
-    }
-
-    fn is_fixed(&self, shape: Shape, height: usize, offset: usize) -> bool {
-        self.maxs.iter().any(|&x| x == height - 1)
+impl From<char> for Action {
+    fn from(value: char) -> Self {
+        match value {
+            '<' => Action::Left,
+            '>' => Action::Right,
+            _ => panic!("Unexpected movement!"),
+        }
     }
 }
+
+
+type Rock = Vec<(i64, i64)>;
+type Ground = Vec<(i64, i64)>;
+
+const NUMBER_OF_COLS: i64 = 7;
+const CACHE_SIZE: usize = 20;
 
 fn main() {
     let input = fs::read_to_string("17-seventeen/input.txt").unwrap();
     let input = input.trim();
-    part_one(&input);
-    println!("Hello, world!");
+    let rocks: Vec<Rock> = vec![
+        vec![(0, 0), (1, 0), (2, 0), (3, 0)],
+        vec![(0, 1), (1, 0), (1, 1), (1, 2), (2, 1)],
+        vec![(0, 0), (1, 0), (2, 0), (2, 1), (2, 2)],
+        vec![(0, 0), (0, 1), (0, 2), (0, 3)],
+        vec![(0, 0), (0, 1), (1, 0), (1, 1)],
+    ];
+    let actions: Vec<Action> = input.chars().map(|x|x.into()).collect();
+    let part_one = resolve(2022, &actions, &rocks);
+    let part_two = resolve(1_000_000_000_000, &actions, &rocks);
+    println!("part one = {}", part_one);
+    println!("part two = {}", part_two);
 }
 
-fn part_one(input: &str) -> usize {
-    let tetris = Tetris::init();
-    let moves = parse_input(&input);
-    let mut moves_iterator = moves.iter().cycle();
-    for (i, shape) in tetris.shapes.iter().cycle().enumerate() {
-        if i == 2023 {
-            return *tetris.maxs.iter().max().unwrap();
+fn resolve(num_rocks: i64, actions: &Vec<Action>, rocks: &Vec<Rock>) -> i64 {
+    let mut filled_cells: BTreeSet<(i64, i64)> = BTreeSet::new();
+    let mut cache: BTreeMap<(i64, usize, Ground), (i64, i64)> = BTreeMap::new();
+    let mut max_height = 0;
+    let mut height_gain_by_cache = 0;
+    let mut count = num_rocks;
+    let mut actions_cycle = actions.iter().enumerate().cycle();
+    let mut rocks_cycle = rocks.iter().enumerate().cycle();
+    let mut action_index = 0;
+
+    while count > 0 {
+        let (rock_index, next_rock) = rocks_cycle.next().unwrap();
+        (action_index, max_height) = place_rock(&mut filled_cells, action_index, max_height, &mut actions_cycle, next_rock);
+        count -= 1;
+        let Some(ground) = find_ground(&filled_cells, max_height) else {
+            continue;
+        };
+        if let Some((old_max, old_count)) = cache.get(&(action_index, rock_index, ground.clone())) {
+            height_gain_by_cache += (max_height - old_max) * (count / (old_count - count));
+            count %= old_count - count;
         }
-        let action = moves_iterator.next().unwrap();
+        cache.insert((action_index, rock_index, ground), (max_height, count));
     }
-    unreachable!();
+    return max_height + height_gain_by_cache;
 }
 
+fn place_rock(filled_cells: &mut BTreeSet<(i64, i64)>, action_index: i64, max_y: i64, actions: &mut Cycle<Enumerate<Iter<Action>>>, rock: &Rock) -> (i64, i64) {
+    let mut x = 2;
+    let mut y = max_y + 5;
+    let mut new_action_index = action_index;
+    while rock_is_movable(filled_cells, x, y - 1, rock) {
+        y -= 1;
+        let (idx, action) = actions.next().unwrap();
+        match action {
+            Action::Left => {
+                if rock_is_movable(filled_cells, x - 1, y, rock) {
+                    x -= 1;
+                }
+            },
+            Action::Right => {
+                if rock_is_movable(filled_cells, x + 1, y, rock) {
+                    x += 1;
+                }
+            },
+        }
+        new_action_index = idx as i64;
+    }
+    let final_rock_position: Rock = rock.iter().map(|(dx, dy)| (x + dx, y + dy)).collect();
+    final_rock_position.iter().for_each(|cell| {
+        filled_cells.insert(*cell);
+    });
 
-fn move_shape(mut start: usize, length: usize, min: usize, max: usize, action: Move) -> usize {
-    if action == Move::Left {
-        start -= 1;
-    } else {
-        start += 1;
-    }
-    if start + length > max {
-        return start - 1;
-    }
-    if start < min {
-        return min;
-    }
-    start
+    let top_of_the_rock = final_rock_position.iter().map(|(_, y)| *y).max().unwrap();
+    (new_action_index, cmp::max(max_y, top_of_the_rock))
 }
 
-fn parse_input(input: &str) -> Vec<Move> {
-    input
-        .chars()
-        .map(|c| match c {
-            '>' => Move::Right,
-            '<' => Move::Left,
-            x => panic!("{:?}", x),
-        })
-        .collect()
+fn find_ground(placed: &BTreeSet<(i64, i64)>, max_y: i64) -> Option<Ground> {
+    let mut state: BTreeSet<(i64, i64)> = BTreeSet::new();
+    for x in 0..NUMBER_OF_COLS {
+        search_border(x, 0, &mut state, max_y, placed);
+    }
+    if state.len() <= CACHE_SIZE {
+        return Some(state.into_iter().collect());
+    }
+    None
+}
+
+fn search_border(x: i64, y: i64, visited: &mut BTreeSet<(i64, i64)>, max_y: i64, filled_cells: &BTreeSet<(i64, i64)>) {
+    if (!is_empty(filled_cells, x, max_y + y)) || visited.contains(&(x, y)) || visited.len() > CACHE_SIZE {
+        return;
+    }
+    visited.insert((x, y));
+    vec![(x - 1, y), (x + 1, y), (x, y - 1)].iter().for_each(|(nx, ny)| {
+        search_border(*nx, *ny, visited, max_y, filled_cells);
+    });
+}
+
+fn rock_is_movable(placed: &BTreeSet<(i64, i64)>, x: i64, y: i64, rock: &Rock) -> bool {
+    rock.iter().all(|(dx, dy)| is_empty(placed, x + dx, y + dy))
+}
+
+fn is_empty(placed: &BTreeSet<(i64, i64)>, x: i64, y: i64) -> bool {
+    (y > 0) && (x >= 0) && (x < NUMBER_OF_COLS) && !placed.contains(&(x, y))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sample_data() -> (Vec<Action>, Vec<Rock>) {
+        let input = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>";
+        let actions: Vec<Action> = input.chars().map(|c| c.into()).collect();
+        let rocks: Vec<Rock> = vec![
+            vec![(0, 0), (1, 0), (2, 0), (3, 0)],
+            vec![(0, 1), (1, 0), (1, 1), (1, 2), (2, 1)],
+            vec![(0, 0), (1, 0), (2, 0), (2, 1), (2, 2)],
+            vec![(0, 0), (0, 1), (0, 2), (0, 3)],
+            vec![(0, 0), (0, 1), (1, 0), (1, 1)],
+        ];
+        (actions, rocks)
+    }
+
+    #[test]
+    fn test_with_2022() {
+        let (actions, rocks) = sample_data();
+        let res = resolve(2022, &actions, &rocks);
+        assert_eq!(3068, res);
+    }
+
+    #[test]
+    fn test_with_1_000_000_000_000() {
+        let expected: i64 = 1514285714288;
+        let (actions, rocks) = sample_data();
+        let res = resolve(1_000_000_000_000, &actions, &rocks);
+        assert_eq!(expected, res);
+    }
 }

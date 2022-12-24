@@ -50,8 +50,8 @@ Valve JJ has flow rate=21; tunnel leads to valve II";
     fn test_part1() {
         const EXPECTED: isize = 1651;
         assert_eq!(EXPECTED, part_one(INPUT, 30));
-        assert!(false);
     }
+
     #[test]
     fn test_part2() {
         const EXPECTED: isize = 1707;

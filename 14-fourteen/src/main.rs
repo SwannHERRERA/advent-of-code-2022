@@ -142,7 +142,6 @@ fn x_max(grid: &HashMap<(X, Y), Material>) -> Y {
 
 fn x_min(grid: &HashMap<(X, Y), Material>) -> Y {
     grid.keys().map(|(r, _)| *r).min().unwrap_or(0)
-
 }
 
 #[allow(unused)]
@@ -181,7 +180,6 @@ mod tests {
     fn test_part_one() {
         let res = part_one(INPUT);
         assert_eq!(24, res);
-        
     }
 
     #[test]

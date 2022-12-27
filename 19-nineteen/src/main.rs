@@ -1,4 +1,4 @@
-use std::{rc::Rc, cell::RefCell, fs, collections::{HashSet, VecDeque}, sync::{Mutex, Arc}, thread};
+use std::{rc::Rc, cell::RefCell, fs, collections::HashSet};
 use rayon::prelude::*;
 
 use parse_display::{Display, FromStr};
@@ -9,7 +9,7 @@ fn main() {
     println!("part one : {}", part_one);
 }
 
-#[derive(Debug, Display, FromStr, PartialEq, Clone)]
+#[derive(Debug, Display, FromStr, PartialEq)]
 #[display("Blueprint {id}: Each ore robot costs {ore_robot_cost} ore. Each clay robot costs {clay_robot_cost} ore. Each obsidian robot costs {obisidian_robot_cost_in_ore} ore and {obisidian_robot_cost_in_clay} clay. Each geode robot costs {geode_robot_ore_cost} ore and {geode_robot_obisidan_cost} obsidian.")]
 struct Blueprint {
     id: usize,
@@ -53,6 +53,7 @@ struct Game {
     clay_robots: usize,
     obsidian_robots: usize,
     geode_robots: usize,
+    minutes_remaining: usize,
 }
 
 impl Default for Game {
@@ -66,6 +67,7 @@ impl Default for Game {
             clay_robots: 0,
             obsidian_robots: 0,
             geode_robots: 0,
+            minutes_remaining: 24,
         }
     }
 }
@@ -111,6 +113,7 @@ impl Game {
         game.clay += game.clay_robots;
         game.obsidian += game.obsidian_robots;
         game.geode += game.geode_robots;
+        game.minutes_remaining -= 1;
         game
     }
 }
@@ -124,126 +127,45 @@ fn parse_input(input: &str) -> Vec<Blueprint> {
 
 fn part_one(input: &str) -> usize {
     let blueprints = parse_input(input);
-    let vecdeq: Arc<Mutex<VecDeque<(Blueprint, Game, usize, usize)>>> = Arc::new(Mutex::new(VecDeque::with_capacity(200)));
-    let geode_count: Arc<Mutex<HashSet<(usize, usize)>>> = Arc::new(Mutex::new(HashSet::new()));
-
-    for blueprint in &blueprints {
+    blueprints.par_iter().map(|blueprint| {
+        println!("{blueprint}");
         let game = Game::default();
-        let costs_in_ore = [blueprint.clay_robot_cost, blueprint.obisidian_robot_cost_in_ore, blueprint.geode_robot_ore_cost];
-        let max_cost = *costs_in_ore.iter().max().unwrap();
-        push(vecdeq.clone(), blueprint.clone(), game, 24, max_cost);
-        while let Some((blueprint, game, time, max_ore)) = pop_front(vecdeq.clone()) {
-            if time == 0 {
-                insert(geode_count.clone(), game.geode, blueprint.id);
-                continue;
-            }
-            push(vecdeq.clone(), blueprint.clone(), game.step(), time - 1, max_ore);
-            if max_ore < game.ore_robots && game.ore >= blueprint.ore_robot_cost {
-                push(vecdeq.clone(), blueprint.clone(), game.step().construct_ore_robot(&blueprint), time - 1, max_ore);
-            }
-            if game.obsidian >= blueprint.geode_robot_obisidan_cost && game.ore >= blueprint.geode_robot_ore_cost {
-                push(vecdeq.clone(), blueprint.clone(), game.step().construct_geode_robot(&blueprint), time - 1, max_ore);
-                continue;
-            }
-            if game.obsidian_robots < blueprint.geode_robot_obisidan_cost
-                && game.clay >= blueprint.obisidian_robot_cost_in_clay
-                && game.ore >= blueprint.obisidian_robot_cost_in_ore {
-                push(vecdeq.clone(), blueprint.clone(), game.step().construct_obisidian_robot(&blueprint), time - 1, max_ore);
-                continue;
-            }
-            if game.clay_robots < blueprint.obisidian_robot_cost_in_clay && game.ore >= blueprint.clay_robot_cost {
-                push(vecdeq.clone(), blueprint.clone(), game.step().construct_clay_robot(&blueprint), time - 1, max_ore);
-            }
-            if len(vecdeq.clone()) >= 20 {
-                run_thread(vecdeq.clone(), geode_count.clone());
-            }
-        }
-    }
-    let geode = geode_count.lock().unwrap();
-    blueprints.iter().map(|blueprint| {
-        geode.iter().filter(|(_, id)| *id == blueprint.id).map(|(count, _id)| count).max().unwrap() * blueprint.id
+        let geodes: Rc<RefCell<HashSet<usize>>> = Rc::new(RefCell::new(HashSet::new()));
+        run_game(game, blueprint, geodes.clone());
+        let geodes = geodes.take();
+        println!("{:?}, max: {}", geodes, geodes.iter().max().unwrap());
+        geodes.iter().max().copied().unwrap() * blueprint.id
     }).sum()
 }
 
-fn run_thread(vecdeq: Arc<Mutex<VecDeque<(Blueprint, Game, usize, usize)>>>, geode_count: Arc<Mutex<HashSet<(usize, usize)>>>) {
-    let mut threads = Vec::with_capacity(20);
-    for _ in 0..20 {
-        let vecdeq = vecdeq.clone();
-        let geode_count = geode_count.clone();
-        threads.push(thread::spawn(move || {
-            while let Some((blueprint, game, time, max_ore)) = pop_front(vecdeq.clone()) {
-                if time == 0 {
-                    insert(geode_count.clone(), game.geode, blueprint.id);
-                    continue;
-                }
-                push(vecdeq.clone(), blueprint.clone(), game.step(), time - 1, max_ore);
-                if max_ore < game.ore_robots && game.ore >= blueprint.ore_robot_cost {
-                    push(vecdeq.clone(), blueprint.clone(), game.step().construct_ore_robot(&blueprint), time - 1, max_ore);
-                }
-                if game.obsidian >= blueprint.geode_robot_obisidan_cost && game.ore >= blueprint.geode_robot_ore_cost {
-                    push(vecdeq.clone(), blueprint.clone(), game.step().construct_geode_robot(&blueprint), time - 1, max_ore);
-                    continue;
-                }
-                if game.obsidian_robots < blueprint.geode_robot_obisidan_cost
-                    && game.clay >= blueprint.obisidian_robot_cost_in_clay
-                    && game.ore >= blueprint.obisidian_robot_cost_in_ore {
-                    push(vecdeq.clone(), blueprint.clone(), game.step().construct_obisidian_robot(&blueprint), time - 1, max_ore);
-                    continue;
-                }
-                if game.clay_robots < blueprint.obisidian_robot_cost_in_clay && game.ore >= blueprint.clay_robot_cost {
-                    push(vecdeq.clone(), blueprint.clone(), game.step().construct_clay_robot(&blueprint), time - 1, max_ore);
-                }
-            }
-        }));
-    }
-}
-
-fn len(target: Arc<Mutex<VecDeque<(Blueprint, Game, usize, usize)>>>) -> usize {
-    let target = target.lock().unwrap();
-    target.len()
-}
-
-fn insert(target: Arc<Mutex<HashSet<(usize, usize)>>>, geode: usize, blueprint_id: usize) {
-    let mut target = target.lock().unwrap();
-    target.insert((geode, blueprint_id));
-}
-
-fn pop_front(target: Arc<Mutex<VecDeque<(Blueprint, Game, usize, usize)>>>) -> Option<(Blueprint, Game, usize, usize)> {
-    let mut target = target.lock().unwrap();
-    target.pop_front()
-}
-
-fn push(target: Arc<Mutex<VecDeque<(Blueprint, Game, usize, usize)>>>, blueprint: Blueprint, game: Game, time: usize, ore_max_cost: usize) {
-    let mut target = target.lock().unwrap();
-    target.push_back((blueprint.clone(), game, 24, ore_max_cost));
-}
-
-fn run_game(game: Game, blueprint: &Blueprint, results: Rc<RefCell<HashSet<usize>>>, minutes_remaining: usize, ore_max_cost: usize) {
-    if minutes_remaining == 0 {
+fn run_game(game: Game, blueprint: &Blueprint, results: Rc<RefCell<HashSet<usize>>>) {
+    if game.minutes_remaining == 0 {
         let mut vec = results.borrow_mut();
-        vec.insert(game.step().geode);
+        vec.insert(game.geode);
         return;
     }
-    run_game(game.step(), blueprint, results.clone(), minutes_remaining - 1, ore_max_cost);
-    if ore_max_cost < game.ore_robots && game.ore >= blueprint.ore_robot_cost {
+    run_game(game.step(), blueprint, results.clone());
+    let costs_in_ore = [blueprint.clay_robot_cost, blueprint.obisidian_robot_cost_in_ore, blueprint.geode_robot_ore_cost];
+    let max_cost = costs_in_ore.iter().max().unwrap();
+    if *max_cost < game.ore_robots && game.ore >= blueprint.ore_robot_cost {
         let ore = game.construct_ore_robot(blueprint);
-        run_game(ore, blueprint, results.clone(), minutes_remaining - 1, ore_max_cost);
+        run_game(ore, blueprint, results.clone());
     }
-    if  game.ore >= blueprint.geode_robot_ore_cost && game.obsidian >= blueprint.geode_robot_obisidan_cost {
+    if game.ore >= blueprint.geode_robot_ore_cost && game.obsidian >= blueprint.geode_robot_obisidan_cost {
         let geode = game.construct_geode_robot(blueprint);
-        run_game(geode, blueprint, results.clone(), minutes_remaining - 1, ore_max_cost);
+        run_game(geode, blueprint, results);
         return;
     }
     if game.obsidian_robots < blueprint.geode_robot_obisidan_cost
         && game.ore >= blueprint.obisidian_robot_cost_in_ore
         && game.clay >= blueprint.obisidian_robot_cost_in_clay {
         let obsidian = game.construct_obisidian_robot(blueprint);
-        run_game(obsidian, blueprint, results.clone(), minutes_remaining - 1, ore_max_cost);
+        run_game(obsidian, blueprint, results);
         return;
     }
     if game.clay_robots < blueprint.obisidian_robot_cost_in_clay && game.ore >= blueprint.clay_robot_cost {
         let clay = game.construct_clay_robot(blueprint);
-        run_game(clay, blueprint, results, minutes_remaining - 1, ore_max_cost);
+        run_game(clay, blueprint, results);
     }
 }
 

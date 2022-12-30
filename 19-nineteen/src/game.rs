@@ -58,7 +58,7 @@ impl Game {
                 clay: 0,
                 obsidian: 0,
             });
-            new_game.map(|game| Game {
+            let new_game = new_game.map(|game| Game {
                 geodes: game.geodes + game.minutes_remaining,
                 ..game
             });

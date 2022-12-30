@@ -1,7 +1,7 @@
-use std::slice::Iter;
+use std::collections::{BTreeMap, HashSet};
 use std::iter::{Cycle, Enumerate};
+use std::slice::Iter;
 use std::{cmp, fs};
-use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, PartialOrd, Ord)]
 enum Action {
@@ -19,7 +19,6 @@ impl From<char> for Action {
     }
 }
 
-
 type Rock = Vec<(i64, i64)>;
 type Ground = Vec<(i64, i64)>;
 
@@ -36,7 +35,7 @@ fn main() {
         vec![(0, 0), (0, 1), (0, 2), (0, 3)],
         vec![(0, 0), (0, 1), (1, 0), (1, 1)],
     ];
-    let actions: Vec<Action> = input.chars().map(|x|x.into()).collect();
+    let actions: Vec<Action> = input.chars().map(|x| x.into()).collect();
     let part_one = resolve(2022, &actions, &rocks);
     let part_two = resolve(1_000_000_000_000, &actions, &rocks);
     println!("part one = {}", part_one);
@@ -44,7 +43,7 @@ fn main() {
 }
 
 fn resolve(num_rocks: i64, actions: &Vec<Action>, rocks: &Vec<Rock>) -> i64 {
-    let mut filled_cells: BTreeSet<(i64, i64)> = BTreeSet::new();
+    let mut filled_cells: HashSet<(i64, i64)> = HashSet::new();
     let mut cache: BTreeMap<(i64, usize, Ground), (i64, i64)> = BTreeMap::new();
     let mut max_height = 0;
     let mut height_gain_by_cache = 0;
@@ -55,7 +54,13 @@ fn resolve(num_rocks: i64, actions: &Vec<Action>, rocks: &Vec<Rock>) -> i64 {
 
     while count > 0 {
         let (rock_index, next_rock) = rocks_cycle.next().unwrap();
-        (action_index, max_height) = place_rock(&mut filled_cells, action_index, max_height, &mut actions_cycle, next_rock);
+        (action_index, max_height) = place_rock(
+            &mut filled_cells,
+            action_index,
+            max_height,
+            &mut actions_cycle,
+            next_rock,
+        );
         count -= 1;
         let Some(ground) = find_ground(&filled_cells, max_height) else {
             continue;
@@ -69,7 +74,13 @@ fn resolve(num_rocks: i64, actions: &Vec<Action>, rocks: &Vec<Rock>) -> i64 {
     return max_height + height_gain_by_cache;
 }
 
-fn place_rock(filled_cells: &mut BTreeSet<(i64, i64)>, action_index: i64, max_y: i64, actions: &mut Cycle<Enumerate<Iter<Action>>>, rock: &Rock) -> (i64, i64) {
+fn place_rock(
+    filled_cells: &mut HashSet<(i64, i64)>,
+    action_index: i64,
+    max_y: i64,
+    actions: &mut Cycle<Enumerate<Iter<Action>>>,
+    rock: &Rock,
+) -> (i64, i64) {
     let mut x = 2;
     let mut y = max_y + 5;
     let mut new_action_index = action_index;
@@ -81,12 +92,12 @@ fn place_rock(filled_cells: &mut BTreeSet<(i64, i64)>, action_index: i64, max_y:
                 if rock_is_movable(filled_cells, x - 1, y, rock) {
                     x -= 1;
                 }
-            },
+            }
             Action::Right => {
                 if rock_is_movable(filled_cells, x + 1, y, rock) {
                     x += 1;
                 }
-            },
+            }
         }
         new_action_index = idx as i64;
     }
@@ -99,8 +110,8 @@ fn place_rock(filled_cells: &mut BTreeSet<(i64, i64)>, action_index: i64, max_y:
     (new_action_index, cmp::max(max_y, top_of_the_rock))
 }
 
-fn find_ground(placed: &BTreeSet<(i64, i64)>, max_y: i64) -> Option<Ground> {
-    let mut state: BTreeSet<(i64, i64)> = BTreeSet::new();
+fn find_ground(placed: &HashSet<(i64, i64)>, max_y: i64) -> Option<Ground> {
+    let mut state: HashSet<(i64, i64)> = HashSet::new();
     for x in 0..NUMBER_OF_COLS {
         search_border(x, 0, &mut state, max_y, placed);
     }
@@ -110,21 +121,32 @@ fn find_ground(placed: &BTreeSet<(i64, i64)>, max_y: i64) -> Option<Ground> {
     None
 }
 
-fn search_border(x: i64, y: i64, visited: &mut BTreeSet<(i64, i64)>, max_y: i64, filled_cells: &BTreeSet<(i64, i64)>) {
-    if (!is_empty(filled_cells, x, max_y + y)) || visited.contains(&(x, y)) || visited.len() > CACHE_SIZE {
+fn search_border(
+    x: i64,
+    y: i64,
+    visited: &mut HashSet<(i64, i64)>,
+    max_y: i64,
+    filled_cells: &HashSet<(i64, i64)>,
+) {
+    if (!is_empty(filled_cells, x, max_y + y))
+        || visited.contains(&(x, y))
+        || visited.len() > CACHE_SIZE
+    {
         return;
     }
     visited.insert((x, y));
-    vec![(x - 1, y), (x + 1, y), (x, y - 1)].iter().for_each(|(nx, ny)| {
-        search_border(*nx, *ny, visited, max_y, filled_cells);
-    });
+    vec![(x - 1, y), (x + 1, y), (x, y - 1)]
+        .iter()
+        .for_each(|(nx, ny)| {
+            search_border(*nx, *ny, visited, max_y, filled_cells);
+        });
 }
 
-fn rock_is_movable(placed: &BTreeSet<(i64, i64)>, x: i64, y: i64, rock: &Rock) -> bool {
+fn rock_is_movable(placed: &HashSet<(i64, i64)>, x: i64, y: i64, rock: &Rock) -> bool {
     rock.iter().all(|(dx, dy)| is_empty(placed, x + dx, y + dy))
 }
 
-fn is_empty(placed: &BTreeSet<(i64, i64)>, x: i64, y: i64) -> bool {
+fn is_empty(placed: &HashSet<(i64, i64)>, x: i64, y: i64) -> bool {
     (y > 0) && (x >= 0) && (x < NUMBER_OF_COLS) && !placed.contains(&(x, y))
 }
 

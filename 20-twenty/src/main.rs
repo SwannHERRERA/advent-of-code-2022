@@ -1,9 +1,14 @@
 use std::fs;
 
+const DECRYPTION_KEY: i64 = 811589153;
+const SUMMED_ELEMENT_INDEX: [i64; 3] = [1000, 2000, 3000];
+
 fn main() {
     let input = fs::read_to_string("20-twenty/input.txt").unwrap();
     let part_one = part_one(&input);
     println!("part one : {}", part_one);
+    let part_two = part_two(&input);
+    println!("part two : {}", part_two);
 }
 
 #[derive(Debug)]
@@ -61,10 +66,7 @@ fn parse_input_as_data(input: &str) -> Vec<Data> {
 //     }
 // }
 
-fn part_one(input: &str) -> i64 {
-    const SUMMED_ELEMENT_INDEX: [i64; 3] = [1000, 2000, 3000];
-    let mut datas = parse_input_as_data(input);
-    let message_size = datas.len() as i64 - 1;
+fn mix(datas: &mut Vec<Data>, message_size: i64) {
     let vec_len = datas.len();
     for current in 0..vec_len {
         let index = datas.iter().position(|x| x.inital_index == current).unwrap();
@@ -73,18 +75,42 @@ fn part_one(input: &str) -> i64 {
         let number = datas.remove(index);
         datas.insert( new_index as usize, number);
     }
+
+}
+
+fn get_result(datas: &Vec<Data>) -> i64 {
+    let zero_index = datas.iter().position(|x| x.value == 0).unwrap() as i64;
+    SUMMED_ELEMENT_INDEX
+        .iter()
+        .map(|x| datas.get((zero_index + *x) as usize % datas.len()).unwrap())
+        .map(|x| x.value)
+        .sum()
+}
+
+fn part_one(input: &str) -> i64 {
+    let mut datas = parse_input_as_data(input);
+    let message_size = datas.len() as i64 - 1;
+    mix(&mut datas, message_size);
     // datas.sort_by(|a, b| a.inital_index.partial_cmp(&b.inital_index).unwrap());
     // for mut data in datas {
     //     let moving_neighbours = find_affected_index(data.index, data.value % vec_len);
     //     data.change_index(data.value, vec_len);
     //     move_neighbour(&mut datas, moving_neighbours, data.value.is_positive());
     // }
-    let zero_index = datas.iter().position(|x| x.value == 0).unwrap() as i64;
-    SUMMED_ELEMENT_INDEX
-        .iter()
-        .map(|x| datas.get((zero_index + *x) as usize % vec_len).unwrap())
-        .map(|x| x.value)
-        .sum()
+    get_result(&datas)
+}
+
+fn part_two(input: &str) -> i64 {
+    let datas = parse_input_as_data(input);
+    let mut datas: Vec<Data> = datas.iter().map(|x| {
+        Data::new(x.inital_index, x.value * DECRYPTION_KEY)
+    }).collect();
+    let message_size = datas.len() as i64 - 1;
+    for _ in 0..10 {
+        mix(&mut datas, message_size);
+    }
+
+    get_result(&datas)
 }
 
 #[cfg(test)]
@@ -106,4 +132,10 @@ mod tests {
         assert_eq!(EXPECTED, res);
     }
 
+    #[test]
+    fn test_part_two() {
+        const EXPECTED: i64 = 1623178306;
+        let res = part_two(INPUT);
+        assert_eq!(EXPECTED, res);
+    }
 }

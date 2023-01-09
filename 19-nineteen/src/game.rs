@@ -68,8 +68,7 @@ impl Game {
         branches.into_iter().flatten()
     }
 
-    pub fn bound(self, blueprint: &Blueprint) -> usize {
-        let geode_cost = blueprint.geode_robot_cost.obsidian;
+    pub fn bound(self, obisidian_cost: usize) -> usize {
         let (_, _, geodes) = (0..self.minutes_remaining).rev().fold(
             (
                 self.resources.obsidian,
@@ -77,9 +76,9 @@ impl Game {
                 self.geodes,
             ),
             |(obsidian, rate, geodes), minutes_remaining| {
-                if obsidian >= geode_cost {
+                if obsidian >= obisidian_cost {
                     (
-                        obsidian + rate - geode_cost,
+                        obsidian + rate - obisidian_cost,
                         rate,
                         geodes.saturating_add(minutes_remaining),
                     )

@@ -61,28 +61,22 @@ fn part_two(input: &str) -> usize {
 fn is_interior_block(&(x, y, z): &Position, points: &HashSet<Position>) -> bool {
     let upper = points
         .iter()
-        .find(|point| point.0 > x && point.1 == y && point.2 == z)
-        .is_some();
+        .any(|point| point.0 > x && point.1 == y && point.2 == z);
     let lower = points
         .iter()
-        .find(|point| point.0 < x && point.1 == y && point.2 == z)
-        .is_some();
+        .any(|point| point.0 < x && point.1 == y && point.2 == z);
     let left = points
         .iter()
-        .find(|point| point.0 == x && point.1 > y && point.2 == z)
-        .is_some();
+        .any(|point| point.0 == x && point.1 > y && point.2 == z);
     let right = points
         .iter()
-        .find(|point| point.0 == x && point.1 < y && point.2 == z)
-        .is_some();
+        .any(|point| point.0 == x && point.1 < y && point.2 == z);
     let comming = points
         .iter()
-        .find(|point| point.0 == x && point.1 == y && point.2 > z)
-        .is_some();
+        .any(|point| point.0 == x && point.1 == y && point.2 > z);
     let outgoing = points
         .iter()
-        .find(|point| point.0 == x && point.1 == y && point.2 < z)
-        .is_some();
+        .any(|point| point.0 == x && point.1 == y && point.2 < z);
     [upper, lower, left, right, comming, outgoing]
         .iter()
         .all(|v| *v)

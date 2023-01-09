@@ -52,13 +52,14 @@ fn part_two(input: &str) -> i64 {
 
 fn solve(name: &str, dict: &HashMap<String, Expression>) -> i64 {
     let exp = dict.get(name).unwrap();
+    // TODO refacto this
     if let Expression::Equals(op1, op2) = exp {
-        let eval_left = test_eval(op1, dict);
-        let eval_right = test_eval(&op2, dict);
-        if eval_left {
+        let left = test_eval(op1, dict);
+        let right = test_eval(&op2, dict);
+        if left {
             let val = eval_recu(op1, dict);
             recursive_solve(op2, val, dict)
-        } else if eval_right {
+        } else if right {
             let val = eval_recu(op2, dict);
             recursive_solve(op1, val, dict)
         } else {
@@ -70,8 +71,9 @@ fn solve(name: &str, dict: &HashMap<String, Expression>) -> i64 {
 }
 
 fn recursive_solve(name: &str, val: i64, dict: &HashMap<String, Expression>) -> i64 {
-    let exp = dict.get(name).unwrap();
-    match exp {
+    let candidate = dict.get(name).unwrap();
+    // TODO refacto this
+    match candidate {
         Expression::Integer(n) => *n,
         Expression::Add(op1, op2) => {
             let left = test_eval(op1, dict);
@@ -159,14 +161,14 @@ fn test_eval(name: &str, symtab: &HashMap<String, Expression>) -> bool {
     }
 }
 
-fn eval_recu(name: &str, symtab: &HashMap<String, Expression>) -> i64 {
-    let exp = symtab.get(name).unwrap();
+fn eval_recu(name: &str, dict: &HashMap<String, Expression>) -> i64 {
+    let exp = dict.get(name).unwrap();
     match exp {
         Expression::Integer(n) => *n,
-        Expression::Add(op1, op2) => eval_recu(op1, symtab) + eval_recu(op2, symtab),
-        Expression::Substract(op1, op2) => eval_recu(op1, symtab) - eval_recu(op2, symtab),
-        Expression::Multiply(op1, op2) => eval_recu(op1, symtab) * eval_recu(op2, symtab),
-        Expression::Divide(op1, op2) => eval_recu(op1, symtab) / eval_recu(op2, symtab),
+        Expression::Add(op1, op2) => eval_recu(op1, dict) + eval_recu(op2, dict),
+        Expression::Substract(op1, op2) => eval_recu(op1, dict) - eval_recu(op2, dict),
+        Expression::Multiply(op1, op2) => eval_recu(op1, dict) * eval_recu(op2, dict),
+        Expression::Divide(op1, op2) => eval_recu(op1, dict) / eval_recu(op2, dict),
         _ => unreachable!(),
     }
 }

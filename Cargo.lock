@@ -824,6 +824,9 @@ dependencies = [
 [[package]]
 name = "twenty-three"
 version = "0.0.0"
+dependencies = [
+ "rayon",
+]
 
 [[package]]
 name = "twenty-two"

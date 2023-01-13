@@ -12,6 +12,7 @@ fn main() {
 fn part_one(input: &str) -> i64 {
     const ROUNDS: usize = 10;
     let mut elves = parse_input(input);
+    print_map(&elves);
     for round_number in 0..ROUNDS {
         let next_move: HashMap<(i64, i64), (i64, i64)> = elves
             .par_iter()
@@ -69,7 +70,7 @@ fn parse_input(input: &str) -> HashSet<(i64, i64)> {
             line.chars()
                 .enumerate()
                 .filter(|(_j, c)| *c == '#')
-                .map(move |(j, _c)| (i as i64, j as i64))
+                .map(move |(j, _c)| (j as i64, i as i64))
         })
         .collect()
 }
@@ -111,13 +112,14 @@ fn is_left_free((x, y): (i64, i64), elves: &HashSet<(i64, i64)>) -> bool {
         .all(|e| !elves.contains(e))
 }
 
+type DirectionPredicate = fn((i64, i64), &HashSet<(i64, i64)>) -> bool;
+
 fn compute_next_position(
     (x, y): (i64, i64),
     set: &HashSet<(i64, i64)>,
     current_round: usize,
 ) -> Option<((i64, i64), (i64, i64))> {
-    let choices: Vec<fn((i64, i64), &HashSet<(i64, i64)>) -> bool> =
-        vec![is_top_free, is_bottom_free, is_left_free, is_right_free];
+    let choices: Vec<DirectionPredicate> = vec![is_top_free, is_bottom_free, is_left_free, is_right_free];
     let next_pos = vec![(x, y - 1), (x, y + 1), (x - 1, y), (x + 1, y)];
     for i in 0..choices.len() {
         if choices[(i + current_round) % 4]((x, y), set) {
@@ -125,6 +127,23 @@ fn compute_next_position(
         }
     }
     None
+}
+
+fn print_map(elves: &HashSet<(i64, i64)>) {
+    let max_x = elves.par_iter().map(|(x, _y)| x).max().unwrap();
+    let max_y = elves.par_iter().map(|(_x, y)| y).max().unwrap();
+    let min_x = elves.par_iter().map(|(x, _y)| x).min().unwrap();
+    let min_y = elves.par_iter().map(|(_x, y)| y).min().unwrap();
+    for y in *min_y - 1..=*max_y + 1 {
+        for x in *min_x - 1..=*max_x + 1 {
+            match elves.get(&(x, y)) {
+                Some(_) => print!("#"),
+                None => print!("."),
+            }
+        }
+        println!("");
+    }
+    println!("");
 }
 
 fn compute_score(elves: &HashSet<(i64, i64)>) -> i64 {

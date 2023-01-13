@@ -20,11 +20,11 @@ pub enum Expression {
 }
 
 fn main() {
-   let input = fs::read_to_string("21-twenty-one/input.txt").unwrap();
-   let part_one = part_one(&input);
-   println!("part one : {part_one}");
-   let part_two = part_two(&input);
-   println!("part two : {part_two}");
+    let input = fs::read_to_string("21-twenty-one/input.txt").unwrap();
+    let part_one = part_one(&input);
+    println!("part one : {part_one}");
+    let part_two = part_two(&input);
+    println!("part two : {part_two}");
 }
 
 fn part_one(input: &str) -> i64 {
@@ -37,7 +37,10 @@ fn part_two(input: &str) -> i64 {
     let root = "root".to_string();
     let root_exp = dict.get(&root).unwrap();
     match root_exp {
-        Expression::Add(op1, op2) | Expression::Substract(op1, op2) | Expression::Multiply(op1, op2) | Expression::Divide(op1, op2) => {
+        Expression::Add(op1, op2)
+        | Expression::Substract(op1, op2)
+        | Expression::Multiply(op1, op2)
+        | Expression::Divide(op1, op2) => {
             let new_exp = Expression::Equals(op1.clone(), op2.clone());
             dict.insert(root, new_exp);
         }
@@ -141,11 +144,14 @@ fn recursive_solve(name: &str, val: i64, dict: &HashMap<String, Expression>) -> 
 }
 
 fn parse_input(input: &str) -> HashMap<String, Expression> {
-    input.lines().map(|line| {
-        let (name, expression) = line.split_once(':').unwrap();
-        let expression: Expression = expression.parse().unwrap();
-        (name.to_string(), expression)
-    }).collect()
+    input
+        .lines()
+        .map(|line| {
+            let (name, expression) = line.split_once(':').unwrap();
+            let expression: Expression = expression.parse().unwrap();
+            (name.to_string(), expression)
+        })
+        .collect()
 }
 
 fn test_eval(name: &str, symtab: &HashMap<String, Expression>) -> bool {

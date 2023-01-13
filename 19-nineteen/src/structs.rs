@@ -67,18 +67,37 @@ pub struct Blueprint {
 
 impl From<&BlueprintFromInput> for Blueprint {
     fn from(candidate: &BlueprintFromInput) -> Self {
-        let ore_costs = [candidate.geode_robot_ore_cost, candidate.obisidian_robot_cost_in_ore, candidate.clay_robot_cost, candidate.ore_robot_cost];
+        let ore_costs = [
+            candidate.geode_robot_ore_cost,
+            candidate.obisidian_robot_cost_in_ore,
+            candidate.clay_robot_cost,
+            candidate.ore_robot_cost,
+        ];
         let max_ore_cost = *ore_costs.iter().max().unwrap();
 
         Blueprint {
             id: candidate.id,
-            ore_robot_cost: Resources { ore: candidate.ore_robot_cost, clay: 0, obsidian: 0 },
-            clay_robot_cost: Resources { ore: candidate.clay_robot_cost, clay: 0, obsidian: 0 },
-            obsidian_robot_cost: Resources { ore: candidate.obisidian_robot_cost_in_ore, clay: candidate.obisidian_robot_cost_in_clay, obsidian: 0 },
-            geode_robot_cost: Resources { ore: candidate.geode_robot_ore_cost, clay: 0, obsidian: candidate.geode_robot_obisidan_cost },
+            ore_robot_cost: Resources {
+                ore: candidate.ore_robot_cost,
+                clay: 0,
+                obsidian: 0,
+            },
+            clay_robot_cost: Resources {
+                ore: candidate.clay_robot_cost,
+                clay: 0,
+                obsidian: 0,
+            },
+            obsidian_robot_cost: Resources {
+                ore: candidate.obisidian_robot_cost_in_ore,
+                clay: candidate.obisidian_robot_cost_in_clay,
+                obsidian: 0,
+            },
+            geode_robot_cost: Resources {
+                ore: candidate.geode_robot_ore_cost,
+                clay: 0,
+                obsidian: candidate.geode_robot_obisidan_cost,
+            },
             max_ore_cost,
         }
     }
 }
-
-

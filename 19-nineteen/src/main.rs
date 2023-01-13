@@ -3,9 +3,8 @@ use std::fs;
 use game::Game;
 use structs::{Blueprint, BlueprintFromInput};
 
-mod structs;
 mod game;
-
+mod structs;
 
 fn main() {
     let input = fs::read_to_string("19-nineteen/input.txt").unwrap();
@@ -18,28 +17,34 @@ fn main() {
 fn part_one(input: &str) -> usize {
     let blueprints = parse_input(input);
 
-    blueprints.iter().map(Blueprint::from).map(|blueprint| {
-        let mut max_geode = 0;
-        branch_and_bound(&blueprint, Game::new(24), &mut max_geode);
-        blueprint.id as usize * max_geode as usize
-    }).sum()
+    blueprints
+        .iter()
+        .map(Blueprint::from)
+        .map(|blueprint| {
+            let mut max_geode = 0;
+            branch_and_bound(&blueprint, Game::new(24), &mut max_geode);
+            blueprint.id as usize * max_geode as usize
+        })
+        .sum()
 }
 
 fn part_two(input: &str) -> usize {
     let blueprints = parse_input(input);
 
-    blueprints.iter().take(3).map(Blueprint::from).map(|blueprint| {
-        let mut solution = 0;
-        branch_and_bound(&blueprint, Game::new(32), &mut solution);
-        solution as usize
-    }).product()
+    blueprints
+        .iter()
+        .take(3)
+        .map(Blueprint::from)
+        .map(|blueprint| {
+            let mut solution = 0;
+            branch_and_bound(&blueprint, Game::new(32), &mut solution);
+            solution as usize
+        })
+        .product()
 }
 
 fn parse_input(input: &str) -> Vec<BlueprintFromInput> {
-    input
-        .lines()
-        .map(|line| line.parse().unwrap())
-        .collect()
+    input.lines().map(|line| line.parse().unwrap()).collect()
 }
 
 fn branch_and_bound(blueprint: &Blueprint, state: Game, max: &mut usize) {

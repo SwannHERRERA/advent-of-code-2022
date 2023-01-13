@@ -1,4 +1,4 @@
-use crate::structs::{Resources, Blueprint};
+use crate::structs::{Blueprint, Resources};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Game {
@@ -18,7 +18,7 @@ impl Game {
                 ore: 1,
                 clay: 0,
                 obsidian: 0,
-            }
+            },
         }
     }
 
@@ -28,36 +28,50 @@ impl Game {
 
         let ore_robot_viable = self.resources_production.ore < blueprint.max_ore_cost;
         let clay_robot_viable = self.resources_production.clay < blueprint.obsidian_robot_cost.clay;
-        let obsidian_robot_viable = self.resources_production.obsidian < blueprint.geode_robot_cost.obsidian && self.resources_production.clay > 0;
+        let obsidian_robot_viable = self.resources_production.obsidian
+            < blueprint.geode_robot_cost.obsidian
+            && self.resources_production.clay > 0;
         let geode_robot_viable = self.resources_production.obsidian > 0;
 
         if ore_robot_viable {
-            branches.push(self.chose_robot(blueprint.ore_robot_cost, Resources {
-                ore: 1,
-                clay: 0,
-                obsidian: 0,
-            }));
+            branches.push(self.chose_robot(
+                blueprint.ore_robot_cost,
+                Resources {
+                    ore: 1,
+                    clay: 0,
+                    obsidian: 0,
+                },
+            ));
         }
         if clay_robot_viable {
-            branches.push(self.chose_robot(blueprint.clay_robot_cost, Resources {
-                ore: 0,
-                clay: 1,
-                obsidian: 0,
-            }));
+            branches.push(self.chose_robot(
+                blueprint.clay_robot_cost,
+                Resources {
+                    ore: 0,
+                    clay: 1,
+                    obsidian: 0,
+                },
+            ));
         }
         if obsidian_robot_viable {
-            branches.push(self.chose_robot(blueprint.obsidian_robot_cost, Resources {
-                ore: 0,
-                clay: 0,
-                obsidian: 1,
-            }));
+            branches.push(self.chose_robot(
+                blueprint.obsidian_robot_cost,
+                Resources {
+                    ore: 0,
+                    clay: 0,
+                    obsidian: 1,
+                },
+            ));
         }
         if geode_robot_viable {
-            let new_game = self.chose_robot(blueprint.geode_robot_cost, Resources {
-                ore: 1,
-                clay: 0,
-                obsidian: 0,
-            });
+            let new_game = self.chose_robot(
+                blueprint.geode_robot_cost,
+                Resources {
+                    ore: 1,
+                    clay: 0,
+                    obsidian: 0,
+                },
+            );
             let new_game = new_game.map(|game| Game {
                 geodes: game.geodes + game.minutes_remaining,
                 ..game

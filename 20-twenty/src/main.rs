@@ -32,7 +32,6 @@ impl Data {
     // }
 }
 
-
 fn parse_input_as_data(input: &str) -> Vec<Data> {
     input
         .lines()
@@ -69,13 +68,15 @@ fn parse_input_as_data(input: &str) -> Vec<Data> {
 fn mix(datas: &mut Vec<Data>, message_size: i64) {
     let vec_len = datas.len();
     for current in 0..vec_len {
-        let index = datas.iter().position(|x| x.inital_index == current).unwrap();
+        let index = datas
+            .iter()
+            .position(|x| x.inital_index == current)
+            .unwrap();
         let mut new_index = index as i64 + datas[index].value;
         new_index = ((new_index % message_size) + message_size) % message_size;
         let number = datas.remove(index);
-        datas.insert( new_index as usize, number);
+        datas.insert(new_index as usize, number);
     }
-
 }
 
 fn get_result(datas: &Vec<Data>) -> i64 {
@@ -102,9 +103,10 @@ fn part_one(input: &str) -> i64 {
 
 fn part_two(input: &str) -> i64 {
     let datas = parse_input_as_data(input);
-    let mut datas: Vec<Data> = datas.iter().map(|x| {
-        Data::new(x.inital_index, x.value * DECRYPTION_KEY)
-    }).collect();
+    let mut datas: Vec<Data> = datas
+        .iter()
+        .map(|x| Data::new(x.inital_index, x.value * DECRYPTION_KEY))
+        .collect();
     let message_size = datas.len() as i64 - 1;
     for _ in 0..10 {
         mix(&mut datas, message_size);
@@ -127,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        const EXPECTED: i64 = 3; 
+        const EXPECTED: i64 = 3;
         let res = part_one(INPUT);
         assert_eq!(EXPECTED, res);
     }

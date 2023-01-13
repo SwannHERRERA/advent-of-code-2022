@@ -91,22 +91,22 @@ fn elve_should_move((x, y): (i64, i64), set: &HashSet<(i64, i64)>) -> bool {
 }
 
 fn is_top_free((x, y): (i64, i64), elves: &HashSet<(i64, i64)>) -> bool {
-    vec![(x + 1, y - 1), (x + 1, y), (x + 1, y - 1)]
+    vec![(x - 1, y - 1), (x , y - 1), (x + 1, y - 1)]
         .par_iter()
         .all(|e| !elves.contains(e))
 }
 fn is_right_free((x, y): (i64, i64), elves: &HashSet<(i64, i64)>) -> bool {
-    vec![(x + 1, y + 1), (x, y + 1), (x - 1, y + 1)]
+    vec![(x + 1, y - 1), (x + 1, y), (x + 1, y + 1)]
         .par_iter()
         .all(|e| !elves.contains(e))
 }
 fn is_bottom_free((x, y): (i64, i64), elves: &HashSet<(i64, i64)>) -> bool {
-    vec![(x - 1, y - 1), (x - 1, y), (x - 1, y + 1)]
+    vec![(x - 1, y + 1), (x , y + 1), (x + 1, y + 1)]
         .par_iter()
         .all(|e| !elves.contains(e))
 }
 fn is_left_free((x, y): (i64, i64), elves: &HashSet<(i64, i64)>) -> bool {
-    vec![(x + 1, y - 1), (x, y - 1), (x - 1, y - 1)]
+    vec![(x - 1, y - 1), (x - 1, y), (x - 1, y + 1)]
         .par_iter()
         .all(|e| !elves.contains(e))
 }
@@ -118,7 +118,7 @@ fn compute_next_position(
 ) -> Option<((i64, i64), (i64, i64))> {
     let choices: Vec<fn((i64, i64), &HashSet<(i64, i64)>) -> bool> =
         vec![is_top_free, is_bottom_free, is_left_free, is_right_free];
-    let next_pos = vec![(x + 1, y), (x - 1, y), (x, y - 1), (x, y + 1)];
+    let next_pos = vec![(x, y - 1), (x, y + 1), (x - 1, y), (x + 1, y)];
     for i in 0..choices.len() {
         if choices[(i + current_round) % 4]((x, y), set) {
             return Some(((x, y), next_pos[(i + current_round) % 4]));

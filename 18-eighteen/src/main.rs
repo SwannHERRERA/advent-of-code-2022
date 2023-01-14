@@ -49,38 +49,75 @@ fn part_two(input: &str) -> usize {
     set.iter()
         .map(|axies| {
             let neighbours = compute_neighbour(*axies);
-            neighbours
+            let exterior_count = neighbours
                 .iter()
                 .filter(|neighbour| !set.contains(&neighbour))
                 .filter(|position| !is_interior_block(position, &set))
-                .count()
+                .count();
+            let interior_count = neighbours
+                .iter()
+                .filter(|neighbour| !set.contains(&neighbour))
+                .filter(|position| is_interior_block(position, &set))
+                .filter(|(x, y, z)| {
+                    [
+                        (*x - 1, *y, *z),
+                        (*x + 1, *y, *z),
+                        (*x, *y - 1, *z),
+                        (*x, *y + 1, *z),
+                        (*x, *y, *z - 1),
+                        (*x, *y, *z + 1)
+                    ]
+                    .iter()
+                    .filter(|position| set.get(position).is_none())
+                    .any(|position| check_if_block_is_visible(*position, &set)>= 1)
+                } )
+                .count();
+            exterior_count + interior_count
         })
         .sum()
 }
 
-fn is_interior_block(&(x, y, z): &Position, points: &HashSet<Position>) -> bool {
-    let upper = points
+fn is_interior_block(&(x, y, z): &Position, set: &HashSet<Position>) -> bool {
+    let upper = set
         .iter()
-        .any(|point| point.0 > x && point.1 == y && point.2 == z);
-    let lower = points
+        .any(|position| position.0 > x && position.1 == y && position.2 == z);
+    let lower = set
         .iter()
-        .any(|point| point.0 < x && point.1 == y && point.2 == z);
-    let left = points
+        .any(|position| position.0 < x && position.1 == y && position.2 == z);
+    let left = set
         .iter()
-        .any(|point| point.0 == x && point.1 > y && point.2 == z);
-    let right = points
+        .any(|position| position.0 == x && position.1 > y && position.2 == z);
+    let right = set
         .iter()
-        .any(|point| point.0 == x && point.1 < y && point.2 == z);
-    let comming = points
+        .any(|position| position.0 == x && position.1 < y && position.2 == z);
+    let comming = set
         .iter()
-        .any(|point| point.0 == x && point.1 == y && point.2 > z);
-    let outgoing = points
+        .any(|position| position.0 == x && position.1 == y && position.2 > z);
+    let outgoing = set
         .iter()
-        .any(|point| point.0 == x && point.1 == y && point.2 < z);
+        .any(|position| position.0 == x && position.1 == y && position.2 < z);
     [upper, lower, left, right, comming, outgoing]
         .iter()
         .all(|v| *v)
 }
+
+fn check_if_block_is_visible(
+    (x, y, z): Position,
+    points: &HashSet<Position>,
+) -> usize {
+    let x_low = (x - 1, y, z);
+    let x_high = (x + 1, y, z);
+    let y_low = (x, y - 1, z);
+    let y_high = (x, y + 1, z);
+    let z_low = (x, y, z - 1);
+    let z_high = (x, y, z + 1);
+    [x_low, x_high, y_low, y_high, z_low, z_high]
+        .iter()
+        .filter(|ivec| points.get(ivec).is_none())
+        .filter(|ivec| !is_interior_block(&ivec, &points))
+        .count()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

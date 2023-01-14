@@ -821,6 +821,9 @@ version = "0.0.0"
 [[package]]
 name = "twenty-four"
 version = "0.0.0"
+dependencies = [
+ "num",
+]
 
 [[package]]
 name = "twenty-one"

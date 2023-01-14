@@ -27,25 +27,25 @@ fn to_snafu(decimal: i64) -> String {
 
 fn parse_token(c: char) -> i64 {
     match c {
-    '2' => 2,
-    '1' => 1,
-    '0' => 0,
-    '-' => -1,
-    '=' => -2,
-    _ => unreachable!(),
+        '2' => 2,
+        '1' => 1,
+        '0' => 0,
+        '-' => -1,
+        '=' => -2,
+        _ => unreachable!(),
     }
 }
 
 fn to_decimal(snafu: &str) -> i64 {
-    snafu.chars().rev().enumerate().fold(0, |acc, (i, c)|
+    snafu.chars().rev().enumerate().fold(0, |acc, (i, c)| {
         if i == 0 {
             let value = parse_token(c);
-            acc + value 
+            acc + value
         } else {
             let value = parse_token(c);
             acc + (5_i64.pow(i as u32) * value)
         }
-    )
+    })
 }
 
 #[cfg(test)]

@@ -65,12 +65,12 @@ fn part_two(input: &str) -> usize {
                         (*x, *y - 1, *z),
                         (*x, *y + 1, *z),
                         (*x, *y, *z - 1),
-                        (*x, *y, *z + 1)
+                        (*x, *y, *z + 1),
                     ]
                     .iter()
                     .filter(|position| set.get(position).is_none())
-                    .any(|position| check_if_block_is_visible(*position, &set)>= 1)
-                } )
+                    .any(|position| check_if_block_is_visible(*position, &set) >= 1)
+                })
                 .count();
             exterior_count + interior_count
         })
@@ -101,10 +101,7 @@ fn is_interior_block(&(x, y, z): &Position, set: &HashSet<Position>) -> bool {
         .all(|v| *v)
 }
 
-fn check_if_block_is_visible(
-    (x, y, z): Position,
-    points: &HashSet<Position>,
-) -> usize {
+fn check_if_block_is_visible((x, y, z): Position, points: &HashSet<Position>) -> usize {
     let x_low = (x - 1, y, z);
     let x_high = (x + 1, y, z);
     let y_low = (x, y - 1, z);
